@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node servidor.mjs",
     "test": "node --test pruebas/*.test.mjs",
-    "check": "node --check src/adherencia.js && node --check src/registro-manual.js && node --check src/desktop.js && node --check src/motor.js && node --check src/app.js && node --check src/almacen.js && node --check src/informes.js && node --check src/cima.js && node --check src/medicacion.js && node --check src/vista-informes.js && node --check src/recursos.js && node --check servidor.mjs && node --check src/acceso.js && node --check src/portada.js && node --check src/legal.js && node --check src/demo.js",
-    "test:browser": "node pruebas/navegador.mjs && node pruebas/publico.mjs && node pruebas/desktop.mjs && node pruebas/registro-manual.mjs"
+    "check": "node --check src/temporal.js && node --check src/dispensaciones.js && node --check src/senales.js && node --check src/revision-datos.js && node --check src/adherencia.js && node --check src/registro-manual.js && node --check src/desktop.js && node --check src/motor.js && node --check src/app.js && node --check src/almacen.js && node --check src/informes.js && node --check src/cima.js && node --check src/medicacion.js && node --check src/vista-informes.js && node --check src/recursos.js && node --check servidor.mjs && node --check src/acceso.js && node --check src/portada.js && node --check src/legal.js && node --check src/demo.js",
+    "test:browser": "node pruebas/navegador.mjs && node pruebas/publico.mjs && node pruebas/desktop.mjs && node pruebas/registro-manual.mjs && node pruebas/confianza.mjs"
   },
   "engines": {
     "node": ">=22"

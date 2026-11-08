@@ -1,3 +1,5 @@
+import { nivelHasta, eventosHasta, tratamientoHasta, ultimoEvento, aplicable } from "./temporal.js";
+import { evaluarSenales } from "./senales.js";
 import { ultimaEvaluacionAdherencia, textoEvaluacionAdherencia } from "./adherencia.js";
 import {
   VERSION,
@@ -14,6 +16,7 @@ const esInforme = (e) => ["informe", "informe_paciente"].includes(e.tipo);
 export function informe(p, fin, r = REGLAS) {
   return structuredClone({
     tipo: "informe",
+    temporal: "efectiva-v1",
     fecha: fin,
     formato: "vihconectados/informe@1",
     version: VERSION,
@@ -21,10 +24,10 @@ export function informe(p, fin, r = REGLAS) {
     autor: "Dr. Ramón Morillo Verdugo",
     destino: "Infecciosas (simulado)",
     paciente: p.id,
-    nivel: nivel(p),
+    nivel: nivelHasta(p,fin) || "Sin dato",
     cobertura: cobertura(p, fin, r),
-    alertas: alertas(p, fin, r),
-    informes_previos: p.eventos.filter(esInforme).map((e) => e.id),
+    alertas: evaluarSenales(p, fin, r),
+    informes_previos: p.eventos.filter(e=>esInforme(e) && aplicable(e,fin)).map((e) => e.id),
     eventos: p.eventos.filter((e) => !esInforme(e)),
   });
 }
@@ -70,17 +73,18 @@ export function informePaciente(
 export function resumenInforme(i) {
   const eventos = i.eventos || [],
     p = { eventos };
-  const tratamiento = episodios(p)
+  const q = i.temporal === "efectiva-v1" ? {...p,eventos:eventosHasta(p,i.fecha)} : p;
+  const tratamiento = episodios(q)
     .filter((e) => e.fecha <= i.fecha)
     .at(-1);
-  const visita = eventos
+  const visita = q.eventos
     .filter((e) => e.tipo === "visita" && e.fecha <= i.fecha)
     .at(-1);
-  const actuaciones = eventos
+  const actuaciones = q.eventos
     .filter((e) => e.tipo === "actuacion" && (!e.fecha || e.fecha <= i.fecha))
     .map((a) => ({
       ...a,
-      estado: eventos.some(
+      estado: q.eventos.some(
         (e) => e.tipo === "estado_actuacion" && e.actuacion === a.id,
       )
         ? "realizada"
@@ -91,7 +95,7 @@ export function resumenInforme(i) {
     evaluacion_adherencia: ultimaEvaluacionAdherencia(p, i.fecha),
     visita,
     actuaciones,
-    revisiones: eventos.filter(
+    revisiones: q.eventos.filter(
       (e) => e.tipo === "revision_alertas" && e.fecha <= i.fecha,
     ),
   };
@@ -123,7 +127,7 @@ export function textoInforme(i) {
     "SEÑALES PARA VALORACIÓN PROFESIONAL",
     ...i.alertas.map(
       (a) =>
-        `- ${a.texto} (${a.estado}; regla ${a.regla}, versión ${a.version})`,
+        `- ${a.texto} (${a.estado}; regla ${a.regla}, versión ${a.version}${a.estado_gestion ? `; gestión ${a.estado_gestion}; ${a.categoria}` : ""})`,
     ),
     ...(!i.alertas.length
       ? [
