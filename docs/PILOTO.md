@@ -1,12 +1,12 @@
 # Limitaciones y requisitos para un futuro piloto clínico
 
-Estado 0.1.0, 08/11/2026. Material de demostración con datos sintéticos. Autor: Dr. Ramón Morillo Verdugo.
+Estado 0.2.0, 08/11/2026. Material de demostración con datos sintéticos. Autor: Dr. Ramón Morillo Verdugo.
 
 ## Límites actuales
 
 No hay evidencia de validación clínica del algoritmo ni de sus reglas. Ni las pruebas unitarias ni la paridad con otra calculadora constituyen validación clínica. Umbral/ventana son parámetros demostrativos heredados. Las dificultades referidas disparan revisión, no diagnóstico de reacción adversa o falta de adherencia. No se asigna automáticamente el nivel CMO ni se modifica tratamiento.
 
-Solo se admite TAR oral con un episodio activo. La pauta ficticia representa un conjunto completo de componentes, sin equivalencias ni dosis reales. No modela TAR de acción prolongada, ingresos, interrupciones, fallecimiento, pérdidas de medicación, cambios parcialmente superpuestos, recetas externas o stock inicial. Nuevos datos pueden modificar la evaluación actual; los informes fijados permanecen independientes. Correcciones de lotes requerirán eventos de anulación y sustitución auditados en una fase posterior; ahora se rechazan conflictos sin sobrescribir.
+Solo se admite TAR oral con un episodio activo. Los ejemplos iniciales tienen etiquetas ficticias; los episodios nuevos pueden seleccionar medicamentos reales de catálogo CIMA para casos siempre sintéticos. Cada registro CIMA es una unidad dispensable, sin deducir dosis ni equivalencias. El filtro de ATC/vía no valida un régimen completo ni su adecuación. Las instrucciones del paciente se redactan manualmente y exigen revisión; no son una prescripción. No modela TAR de acción prolongada, ingresos, interrupciones, fallecimiento, pérdidas de medicación, cambios parcialmente superpuestos, recetas externas o stock inicial. Nuevos datos pueden modificar la evaluación actual; los informes fijados permanecen independientes. Correcciones de lotes requerirán eventos de anulación y sustitución auditados en una fase posterior; ahora se rechazan conflictos sin sobrescribir.
 
 La biblioteca declara acumulación por nivel y discrepancia pendiente con la herramienta original. No se han comprobado las anclas contra el PDF SEFH. No se reproduce una escala PAM ni se calcula una puntuación protegida o no autorizada.
 
@@ -25,3 +25,11 @@ El almacenamiento local y la validación del navegador pueden ser alterados por 
 9. Definir métricas, seguimiento de incidentes, monitorización, soporte, control de versiones y criterios de pausa del piloto. Comparar cobertura con fuentes y resultados apropiados sin inferir causalidad ni adherencia efectiva a partir de dispensaciones.
 
 Ninguna de estas condiciones se declara cumplida por esta entrega. No hay conexión a datos clínicos reales ni autorización para su uso en pacientes.
+
+## Ampliación 0.2
+
+Revisar el filtro de catálogo y su mantenimiento con fuentes oficiales, resolver excepciones y verificar CORS/disponibilidad desde el origen institucional. CIMA no aporta datos de dispensación, pauta, validación terapéutica ni persistencia del catálogo histórico; se mantiene la instantánea de cada consulta. En esta sesión el acceso en vivo está bloqueado por política de red; los contratos se probaron con respuestas sintéticas.
+
+La hoja del paciente requiere gobernanza de las instrucciones, accesibilidad del documento, lenguaje comprensible y validación profesional de cada pauta. No se han validado comprensión en pacientes, impresoras físicas, lectores PDF diferentes o firma documental. Antes de uso clínico deben establecerse emisor/roles reales y circuito de entrega. El botón de copia requiere revisión del texto y autorización institucional; no constituye integración de historia clínica.
+
+El recurso MAPEX-ADHEFAR Hub es externo y complementario. Revisar con el equipo qué materiales son apropiados y las condiciones de uso; enlazarlo no valida clínicamente vihconectados.

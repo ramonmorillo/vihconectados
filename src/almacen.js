@@ -1,3 +1,4 @@
+import { validarMedicamentos } from "./cima.js";
 import {
   CATALOGOS,
   EXPERIENCIA,
@@ -58,11 +59,16 @@ export function anexar(db, id, evento) {
   if (e.fecha) fecha(e.fecha);
   if (e.tipo === "tratamiento") {
     if (
-      !CATALOGOS[e.tar] ||
+      (!CATALOGOS[e.tar] && e.tar !== "CIMA") ||
       !e.fecha ||
       episodios(p).some((x) => x.fecha >= e.fecha)
     )
       throw Error("Añada el TAR después del último inicio registrado");
+    if (e.tar === "CIMA") {
+      validarMedicamentos(e.medicamentos);
+      if (e.confirmado !== true)
+        throw Error("Confirme la revisión del TAR oral completo.");
+    }
   } else if (e.tipo === "visita") {
     if (
       !e.fecha ||
@@ -89,9 +95,13 @@ export function anexar(db, id, evento) {
       throw Error("Informe inexistente");
     transicion(estadoComunicacion(p, e.informe), e.estado);
   } else if (
-    !["importacion", "informe", "revision_alertas", "configuracion"].includes(
-      e.tipo,
-    )
+    ![
+      "importacion",
+      "informe",
+      "informe_paciente",
+      "revision_alertas",
+      "configuracion",
+    ].includes(e.tipo)
   )
     throw Error("Tipo de evento desconocido");
   e.id = crypto.randomUUID();

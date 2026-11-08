@@ -4,7 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>vihconectados · Seguimiento compartido</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://cima.aemps.es; img-src 'self'; object-src 'none'; base-uri 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
     <link rel="stylesheet" href="src/estilos.css" />
+    <link rel="stylesheet" href="src/informes.css" />
   </head>
   <body>
     <div class="demo-banner">
@@ -19,11 +25,12 @@
           <a href="#panel">Panel de seguimiento</a
           ><a href="#pacientes">Casos sintéticos</a
           ><a href="#comunicaciones">Comunicaciones</a
-          ><a href="#modelo">Modelo y reglas</a>
+          ><a href="#modelo">Modelo y reglas</a
+          ><a href="#recursos">Recursos de adherencia</a>
         </nav>
         <div class="aside-foot">
           CMO · MAPEX<small
-            >Dr. Ramón Morillo Verdugo<br />Fase 1 · v0.1.0</small
+            >Dr. Ramón Morillo Verdugo<br />Fase 1 · v0.2.0</small
           >
         </div>
       </aside>
@@ -47,6 +54,7 @@
       <button id="cerrar" class="close" aria-label="Cerrar">×</button>
       <div id="formulario"></div>
     </dialog>
+    <div id="salidaInforme" class="report-output"></div>
     <script type="module" src="src/app.js"></script>
   </body>
 </html>

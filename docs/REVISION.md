@@ -1,5 +1,16 @@
 # Propuesta de revisión
 
+## Ampliación 0.2
+
+Entrada de TAR desde el catálogo CIMA/AEMPS con ficha, presentación y confirmación del régimen; conserva metadatos en cada episodio y adapta el CSV por medicamento. Se mantienen los ejemplos y los informes anteriores sin reescribirlos.
+
+Informes A4 con composición diferenciada para profesional y paciente, hoja opcional con instrucciones manuales revisadas, cita y recurso MAPEX-ADHEFAR. Texto para copiar a historia con alternativa manual al portapapeles. Se enlaza el hub con atribución y sin contexto clínico.
+
+Validación: 22 pruebas unitarias y recorrido Chromium, incluyendo PDF A4 reales y paginación breve/extensa. CIMA se prueba con respuestas sintéticas; su acceso real está bloqueado por la red de este ejecutor. Revisar especialmente `cima.js`, `medicacion.js`, `componentes()` en el motor, los informes y su CSS. Los PDF son impresión del navegador, no firma ni prescripción.
+
+## Entrega inicial 0.1
+
+
 Título: MVP sintético longitudinal de vihconectados, fase 1
 
 El repositorio destino estaba vacío. Esta rama incorpora el mapa de reutilización de preparadorconsulta y una aplicación web modular para demostrar el seguimiento Farmacia–Infecciosas con tres casos ficticios: cobertura continua, huecos de dispensación y cambio de TAR. Conserva eventos anteriores, separa episodios/componentes, valida CSV y fija instantáneas de informes. El circuito de comunicación es simulado; las fuentes CMO se atribuyen y los criterios pendientes de validación permanecen identificados.

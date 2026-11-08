@@ -1,5 +1,23 @@
 # Validación técnica ejecutada
 
+## Versión 0.2.0 — CIMA, informes y recursos
+
+08/11/2026. No es validación clínica.
+
+- `npm ci --cache /tmp/vih-npm-cache --no-audit --no-fund`: instalación congelada correcta.
+- `npm run check`: sintaxis de todos los módulos y servidor correcta.
+- `npm test`: 22 pruebas ejecutadas y pasadas, 0 fallidas/omitidas. Incluyen el contrato CIMA, parcialidad/fallo de red, vía/ATC, metadatos, duplicación, TAR multimed y compatibilidad histórica; hoja revisada, escape, inmutabilidad, copia legible y rechazo de cálculo sin componentes.
+- `npm run test:browser`: recorrido completo en Chromium con fichas CIMA sintéticas interceptadas (no datos reales de catálogo). Selección y presentación, TAR, plantilla CSV, importación/duplicados, informe y estados, visita, copia al portapapeles y alternativa manual al denegar permiso, hoja con instrucciones/cita/recurso, enlaces del hub, persistencia y vista móvil sin desbordamiento global. Consola sin errores.
+- PDF reales producidos por Chromium: `/tmp/vih-informe-profesional.pdf` y `/tmp/vih-informe-paciente.pdf`, tamaño A4 comprobado con `pdfinfo`, documentos breves en una página con pie y numeración. Inspección visual de las páginas rasterizadas con `pdftoppm`. Se prueba además una hoja extensa en `/tmp/vih-informe-paciente-extenso.pdf` para verificar continuación sin recorte. No se ha probado una impresora física ni otros motores de impresión.
+- El enlace público del hub no se pudo consultar por HTTP desde esta red. Se verificaron página inicial, atribución y ruta `pacientes.html` en una copia de solo lectura de `ramonmorillo/adhefarmapexhub`, commit `8750436e9e263424da44f5f32e8d7702c6240c05`. No se importó su código.
+
+**Comprobación en vivo pendiente:** las peticiones HTTPS a `cima.aemps.es` y `ramonmorillo.es` recibieron `CONNECT tunnel failed, response 403` del proxy del entorno. No se ha demostrado disponibilidad real ni CORS de CIMA desde el origen de despliegue. No se alteró la política de red ni se evitó la verificación TLS. El adaptador responde con error visible sin registrar una medicación ficticia cuando no puede consultar el catálogo.
+
+Los datos e informes 0.1 siguen usando sus instantáneas originales. No hay conexión a historias clínicas, envío de comunicaciones, prescripción ni datos reales de pacientes. Las instrucciones son locales, solo sintéticas y requieren confirmación de revisión.
+
+## Histórico: versión 0.1.0
+
+
 Fecha: 08/11/2026. Entorno: Node.js 24.22.1, npm 11.9.0, Chromium del sistema, Playwright fijado por package-lock.json. Resultado para MVP 0.1.0; no es validación clínica.
 
 | Comprobación ejecutada | Resultado |

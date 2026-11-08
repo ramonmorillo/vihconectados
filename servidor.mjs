@@ -32,7 +32,7 @@ http
       res.writeHead(200, {
         "Content-Type": tipos[path.extname(rel)],
         "Content-Security-Policy":
-          "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+          "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://cima.aemps.es; img-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
         "X-Content-Type-Options": "nosniff",
         "Cache-Control": "no-store",
       });

@@ -1,0 +1,568 @@
+/* Composición A4 compartida por vista previa e impresión; sin recursos externos. */
+.report-output {
+  display: none;
+}
+.report-dialog {
+  width: min(1040px, 96vw);
+  padding: 24px;
+}
+.report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0;
+}
+.report-preview {
+  background: #eaf0f2;
+  padding: 25px;
+  overflow: auto;
+  border-radius: 8px;
+  max-height: 68vh;
+}
+.documento {
+  background: #fff;
+  color: #203c47;
+  font-family: Arial, Helvetica, sans-serif;
+  max-width: 794px;
+  margin: auto;
+  padding: 42px 46px;
+  box-shadow: 0 4px 25px #1d3f4920;
+  line-height: 1.55;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.doc-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding-bottom: 22px;
+  border-bottom: 2px solid #167b78;
+}
+.doc-logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.9px;
+  line-height: 1.2;
+  color: #096e70;
+}
+.doc-logo span {
+  font-weight: 400;
+}
+.doc-logo small {
+  font-size: 7px;
+  letter-spacing: 1.2px;
+  display: block;
+  margin-top: 8px;
+  color: #607780;
+}
+.doc-type {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: right;
+  color: #49646b;
+}
+.doc-demo {
+  font-size: 8px;
+  letter-spacing: 1px;
+  padding: 10px 0;
+  color: #83632e;
+}
+.doc-title {
+  padding: 22px 0 25px;
+}
+.doc-title > p {
+  font-size: 9px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: #147873;
+  margin: 0 0 8px;
+}
+.documento .doc-title h1 {
+  font-size: 29px;
+  letter-spacing: -1px;
+  line-height: 1.12;
+  margin: 0 0 12px;
+  color: #173c47;
+}
+.doc-title > div {
+  color: #617980;
+  max-width: 570px;
+  font-size: 12px;
+}
+.doc-meta {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1fr;
+  gap: 18px;
+  border-top: 1px solid #d6e2e5;
+  border-bottom: 1px solid #d6e2e5;
+  padding: 16px 0;
+  margin-bottom: 24px;
+}
+.doc-meta span {
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  color: #617980;
+}
+.doc-meta strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+}
+.doc-summary {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 24px;
+  padding: 22px;
+  background: #edf5f3;
+  border-left: 4px solid #0c7975;
+  margin-bottom: 28px;
+  break-inside: avoid;
+}
+.doc-summary p {
+  font-size: 10px;
+  margin: 6px 0;
+}
+.doc-kpi > span {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+.doc-kpi > strong {
+  display: block;
+  font-size: 36px;
+  color: #0b706c;
+  letter-spacing: -1px;
+  line-height: 1.25;
+  margin: 6px 0;
+}
+.doc-section {
+  margin: 24px 0;
+}
+.documento h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  font-size: 14px;
+  color: #214550;
+  margin: 0 0 13px;
+  break-after: avoid;
+}
+.documento h2 > span {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  color: #12867c;
+}
+.documento p {
+  margin: 8px 0;
+}
+.doc-subtle,
+.doc-empty {
+  color: #5b737b;
+  font-size: 10px;
+}
+.doc-medicamento {
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e9eb;
+  break-inside: avoid;
+}
+.doc-medicamento strong {
+  font-size: 11px;
+}
+.doc-medicamento p {
+  font-size: 10px;
+}
+.doc-signal {
+  border-left: 2px solid #c6a05f;
+  padding: 2px 0 4px 12px;
+  margin: 12px 0;
+  break-inside: avoid;
+}
+.doc-signal small {
+  font-size: 8px;
+  color: #6e725f;
+}
+.doc-experiencia {
+  margin: 10px 0 17px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 25px;
+}
+.doc-experiencia > div {
+  padding: 8px 0;
+  border-bottom: 1px solid #e3eaec;
+  break-inside: avoid;
+}
+.doc-experiencia dt {
+  font-size: 9px;
+  color: #637a80;
+}
+.doc-experiencia dd {
+  margin: 3px 0 0;
+  font-size: 11px;
+}
+.doc-list {
+  list-style: none;
+  margin: 15px 0;
+  padding: 0;
+}
+.doc-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #e3eaec;
+  break-inside: avoid;
+}
+.doc-status {
+  font-size: 8px;
+  display: inline-block;
+  color: #0b6b64;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-right: 9px;
+}
+.doc-method {
+  background: #f3f6f7;
+  padding: 16px;
+  margin: 25px 0;
+  break-inside: avoid;
+  font-size: 9px;
+  color: #597079;
+}
+.doc-method p {
+  font-size: 9px;
+}
+.doc-footer {
+  margin-top: 30px;
+  border-top: 2px solid #147873;
+  padding-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  gap: 25px;
+  font-size: 8px;
+  color: #607780;
+  break-inside: avoid;
+}
+.doc-footer > div:last-child {
+  text-align: right;
+  font-size: 7px;
+}
+.doc-footer strong {
+  color: #31545f;
+  font-size: 9px;
+}
+.doc-table {
+  font-size: 9px;
+  margin: 18px 0;
+}
+.doc-table td,
+.doc-table th {
+  padding: 8px 6px;
+  font-size: 9px;
+  vertical-align: top;
+}
+.doc-table thead {
+  display: table-header-group;
+}
+.documento-paciente {
+  font-size: 13px;
+}
+.documento-paciente .doc-title h1 {
+  font-size: 35px;
+}
+.documento-paciente .doc-instrucciones {
+  white-space: pre-wrap;
+  background: #edf5f3;
+  border-radius: 5px;
+  border-left: 4px solid #147873;
+  padding: 20px;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.documento-paciente h2 {
+  font-size: 16px;
+}
+.doc-next {
+  padding: 18px;
+  border: 1px solid #c4dcd6;
+  border-radius: 5px;
+  break-inside: avoid;
+}
+.doc-resource {
+  font-size: 11px;
+  break-inside: avoid;
+}
+.doc-resource a {
+  font-size: 10px;
+  color: #096e70;
+}
+.check-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.check-line input {
+  width: auto;
+  margin-top: 4px;
+}
+.selected-med {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #cfe2df;
+  padding: 14px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+.selected-med strong {
+  font-size: 13px;
+}
+.selected-med p {
+  margin: 5px 0;
+}
+.cima-result {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 12px;
+  margin: 8px 0;
+}
+.cima-result small {
+  display: block;
+  font-weight: 400;
+  color: #607780;
+  margin-top: 4px;
+}
+.cima-detail {
+  background: #f0f6f5;
+  border: 1px solid #d7e6e3;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+.cima-detail h3 {
+  overflow-wrap: anywhere;
+}
+.copy-fallback {
+  width: 100%;
+  min-height: 210px;
+}
+.resource-card {
+  border-left: 4px solid #147873;
+}
+.report-preview h1 {
+  display: block !important;
+}
+@media (max-width: 650px) {
+  .report-dialog {
+    padding: 16px;
+  }
+  .report-preview {
+    padding: 8px;
+  }
+  .documento {
+    padding: 24px 18px;
+  }
+  .doc-top {
+    flex-wrap: wrap;
+  }
+  .doc-meta {
+    gap: 10px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .doc-meta > div:last-child {
+    grid-column: 1/-1;
+  }
+  .doc-summary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .doc-experiencia {
+    grid-template-columns: 1fr;
+  }
+  .documento .doc-title h1 {
+    font-size: 26px;
+  }
+  .doc-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .doc-footer > div:last-child {
+    text-align: left;
+  }
+}
+@page {
+  size: A4;
+  margin: 14mm 15mm 14mm;
+}
+@media print {
+  body.imprimiendo > .shell,
+  body.imprimiendo > .demo-banner,
+  body.imprimiendo > dialog {
+    display: none !important;
+  }
+  body.imprimiendo > .report-output {
+    display: block !important;
+  }
+  .documento {
+    padding: 0;
+    max-width: none;
+    box-shadow: none;
+    font-size: 10pt;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .documento .doc-title h1 {
+    font-size: 25pt !important;
+  }
+  .doc-meta {
+    grid-template-columns: 1fr 1.3fr 1fr;
+  }
+  .doc-meta > div:last-child {
+    grid-column: auto;
+  }
+  .doc-summary {
+    grid-template-columns: 1fr 1.2fr;
+  }
+  .doc-experiencia {
+    grid-template-columns: 1fr 1fr;
+  }
+  .doc-footer {
+    flex-direction: row;
+  }
+  .doc-footer > div:last-child {
+    text-align: right;
+  }
+  .documento h1,
+  .documento h2 {
+    display: block !important;
+  }
+  .documento h2 > span {
+    margin-right: 10px;
+  }
+  .documento p,
+  .doc-instrucciones {
+    orphans: 3;
+    widows: 3;
+  }
+  .doc-section {
+    break-inside: auto;
+  }
+  .documento a {
+    color: #096e70;
+    text-decoration: none;
+  }
+  .report-output .doc-title {
+    padding-top: 14px;
+  }
+  .report-output .doc-demo {
+    font-size: 7pt;
+  }
+  .documento-paciente .doc-instrucciones {
+    font-size: 12pt;
+  }
+  .doc-top,
+  .doc-meta,
+  .doc-title {
+    break-inside: avoid;
+  }
+  .doc-title {
+    break-after: avoid;
+  }
+}
+@media print {
+  .documento {
+    font-size: 9pt;
+  }
+  .doc-top {
+    padding-bottom: 14px;
+  }
+  .documento .doc-title {
+    padding: 12px 0 16px;
+  }
+  .doc-meta {
+    padding: 12px 0;
+    margin-bottom: 18px;
+  }
+  .doc-summary {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .doc-section {
+    margin: 18px 0;
+  }
+  .doc-footer {
+    margin-top: 18px;
+    padding-top: 12px;
+  }
+  .doc-method {
+    padding: 12px;
+    margin: 18px 0;
+  }
+  .documento-paciente .doc-instrucciones {
+    font-size: 11pt;
+    padding: 16px;
+  }
+  .doc-next {
+    padding: 14px;
+  }
+  .doc-medicamento {
+    padding: 8px 0;
+  }
+}
+@media print {
+  .documento:not(.documento-paciente) .doc-top {
+    padding-bottom: 10px;
+  }
+  .documento:not(.documento-paciente) .doc-title {
+    padding: 8px 0 10px;
+  }
+  .documento:not(.documento-paciente) .doc-meta {
+    padding: 10px 0;
+    margin-bottom: 14px;
+  }
+  .documento:not(.documento-paciente) .doc-summary {
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+  .documento:not(.documento-paciente) .doc-section {
+    margin: 14px 0;
+  }
+  .documento:not(.documento-paciente) .doc-method {
+    padding: 10px;
+    margin: 14px 0;
+  }
+  .documento:not(.documento-paciente) .doc-footer {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+}
+@media print {
+  html {
+    background: white !important;
+  }
+  .documento:not(.documento-paciente) .doc-section {
+    margin: 12px 0;
+  }
+  .documento:not(.documento-paciente) .doc-section p {
+    margin: 5px 0;
+  }
+  .documento:not(.documento-paciente) .doc-medicamento p {
+    margin: 4px 0;
+  }
+  .documento:not(.documento-paciente) .doc-method p {
+    margin: 4px 0;
+  }
+}
+@page {
+  @bottom-right {
+    content: "Página " counter(page) " / " counter(pages);
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+    color: #607780;
+  }
+}

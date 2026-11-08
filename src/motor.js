@@ -1,5 +1,5 @@
 /** Motor demostrativo v1. Fechas UTC; intervalos [inicio, fin). Sin inferencia de toma. */
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";
 export const REGLAS = Object.freeze({
   version: "demo-1",
   ventana: 180,
@@ -69,6 +69,17 @@ export function episodios(p) {
     .filter((e) => e.tipo === "tratamiento")
     .sort((a, b) => a.fecha.localeCompare(b.fecha));
 }
+/** Una combinación fija CIMA es una unidad dispensable; un TAR con varios fármacos exige todos. */
+export function componentes(ep) {
+  return ep?.medicamentos?.length
+    ? ep.medicamentos.map((m) => "CIMA-" + m.nregistro)
+    : CATALOGOS[ep?.tar] || [];
+}
+export function nombreTar(ep) {
+  return (
+    ep?.medicamentos?.map((m) => m.nombre).join(" + ") || ep?.tar || "Sin TAR"
+  );
+}
 export function nivel(p) {
   return p.eventos.filter((e) => e.tipo === "nivel").at(-1)?.nivel || "3";
 }
@@ -103,7 +114,7 @@ export function importarCSV(p, texto) {
       e = eps[idx];
     if (
       !e ||
-      !CATALOGOS[e.tar].includes(c) ||
+      !componentes(e).includes(c) ||
       f < e.fecha ||
       (eps[idx + 1] && f >= eps[idx + 1].fecha)
     )
@@ -147,7 +158,12 @@ export function cobertura(p, fin, r = REGLAS) {
     const a = Math.max(inicio, fecha(ep.fecha)),
       b = Math.min(end, eps[i + 1] ? fecha(eps[i + 1].fecha) : end);
     if (b <= a) return;
-    const sets = CATALOGOS[ep.tar].map((c) => {
+    const comps = componentes(ep);
+    if (!comps.length)
+      throw Error(
+        "Episodio sin componentes: revise los datos antes de calcular cobertura.",
+      );
+    const sets = comps.map((c) => {
       const set = new Set();
       let libre = -Infinity;
       ds.filter(
@@ -169,7 +185,7 @@ export function cobertura(p, fin, r = REGLAS) {
     total += b - a;
     detalle.push({
       episodio: ep.id,
-      tar: ep.tar,
+      tar: nombreTar(ep),
       inicio: iso(a),
       fin_exclusivo: iso(b),
       cubiertos: n,
