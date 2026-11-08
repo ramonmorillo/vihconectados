@@ -27,3 +27,5 @@ Accesibilidad formal, navegadores distintos de Chromium, pruebas de carga, audit
 ## Revisión remota
 
 La lectura Git de `vihconectados` funciona pero no devuelve ramas: no hay base `main` para una PR. La consulta real a `https://api.github.com/repos/ramonmorillo/vihconectados` mediante `gh api` devuelve Forbidden; no se ha solicitado ni copiado un token. El resultado del envío de la rama se informa por separado en la entrega.
+
+El envío por Git de `feat/fase-1` se completó correctamente. La rama está disponible en el repositorio destino. No se creó una PR: falta una rama base y la API está bloqueada. No se creó ni modificó `main`; no se publicó configuración del entorno.
