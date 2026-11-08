@@ -1,3 +1,4 @@
+import { navegacionDesktop, vistaPoblacional, vistaCohorte, conectarCohorte, resumenLongitudinal, itinerarioCMO } from "./desktop.js";
 import {
   REGLAS,
   componentes,
@@ -321,6 +322,8 @@ function modelo() {
 }
 function render() {
   const route = location.hash.slice(1) || "inicio";
+  const desktop = route.startsWith("panel/");
+  document.body.classList.toggle("pagina-desktop", desktop);
   const publica =
     route === "inicio" || route === "hospitales" || route.startsWith("legal");
   document.body.classList.toggle("pagina-publica", publica);
@@ -340,6 +343,24 @@ function render() {
   } else if (route === "legal" || route.startsWith("legal/")) {
     title = "Autoría, privacidad y condiciones";
     html = paginaLegal(route.split("/")[1]);
+  } else if (desktop) {
+    const [, vista, id] = route.split("/");
+    seleccion = id || "";
+    const p = paciente();
+    const nav = navegacionDesktop(vista, p?.id);
+    if (route === "panel/poblacional") {
+      title = "Monitorización poblacional";
+      html = nav + vistaPoblacional(db.pacientes, fin, reglas);
+    } else if (route === "panel/cohorte") {
+      title = "Cohorte de TAR oral";
+      html = nav + vistaCohorte(db.pacientes, fin, reglas);
+    } else if (["paciente", "cmo"].includes(vista) && p && route.split("/").length === 3) {
+      title = (vista === "cmo" ? "Intervención CMO · " : "Ficha longitudinal · ") + p.id;
+      html = nav + (vista === "cmo" ? itinerarioCMO(p) : resumenLongitudinal(p, fin, reglas)) + caso(p);
+    } else {
+      title = "Vista no encontrada";
+      html = nav + '<p>No existe esta vista o caso. <a href="#panel/cohorte">Volver a la cohorte</a></p>';
+    }
   } else if (route.startsWith("caso/")) {
     seleccion = route.slice(5);
     const p = paciente();
@@ -374,6 +395,7 @@ function render() {
       ? ""
       : `<label class="no-print filtro">Fecha de corte de la evaluación<input id="corte" type="date" value="${fin}"></label>`) +
     html;
+  conectarCohorte(db.pacientes, fin, reglas);
   document
     .querySelectorAll("[data-pct]")
     .forEach((el) => (el.style.width = el.dataset.pct + "%"));
@@ -424,6 +446,8 @@ document.addEventListener("click", async (ev) => {
     id = b.dataset.id,
     p = paciente();
   try {
+    if (a === "desktop-biblioteca") { tab = "intervenciones"; render(); $("biblioteca-cmo").scrollIntoView(); }
+    if (a === "desktop-informes") { tab = "informes"; render(); }
     if (a === "actualizar-cohorte") {
       const prev = db.pacientes.length;
       guardar(incorporarCohorte(db));
@@ -643,6 +667,8 @@ document.addEventListener("change", async (ev) => {
   }
 });
 window.addEventListener("hashchange", () => {
+  if (location.hash.startsWith("#panel/cmo/")) tab = "intervenciones";
+  else if (location.hash.startsWith("#panel/paciente/")) tab = "resumen";
   $("mensaje").textContent = "";
   $("mensaje").className = "";
   render();
@@ -665,6 +691,7 @@ try {
     reglas = JSON.parse(r);
     validarReglas(reglas);
   }
+  if (location.hash.startsWith("#panel/cmo/")) tab = "intervenciones";
   render();
 } catch (e) {
   $("contenido").textContent =
