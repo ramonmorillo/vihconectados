@@ -148,3 +148,5 @@ Desde la navegación, abra **Estación de seguimiento** (`#panel/poblacional`). 
 Recorrido de revisión: monitorización → cohorte → buscar DEMO-002 → Ver ficha → Intervención CMO → registrar experiencia o añadir una actuación pendiente → marcar realizada → consultar informes. Recargar conserva los eventos. Todo es demostración local, sin envío ni firma. No se calculan retrasos de retirada, resultados virológicos ni adherencia objetiva.
 
 `npm run test:browser` incluye ahora `pruebas/desktop.mjs`. El mapa de reutilización, diferencias con el prototipo y revisión clínica pendiente están en `docs/INTEGRACION_STITCH.md`.
+
+La renovación visual aplica el menú azul marino, cabecera de trabajo y acentos verde azulado también al panel clásico y demás pantallas operativas. Monitorización añade tarjetas de revisión y barras de distribución CMO. La portada pública mantiene su composición. Se utilizan fuentes locales de sistema y no se descargan recursos de diseño externos.

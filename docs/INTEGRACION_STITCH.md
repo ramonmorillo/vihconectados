@@ -9,7 +9,7 @@ Base inspeccionada: rama feat/fase-1, v0.3.0. Los adjuntos son propuestas de dis
 | Ficha | #panel/paciente/DEMO-001 | Resumen, historia, cobertura y formularios del caso existente |
 | CMO | #panel/cmo/DEMO-001 | visita, biblioteca literal, actuación pendiente/realizada, informes y transiciones |
 
-Las rutas clásicas se conservan. Se comparte el shell y se añaden estilos limitados a estas vistas. Los módulos permanecen directamente en src porque el servidor solo sirve archivos en ese nivel; no se cambia esa política para crear subcarpetas.
+Las rutas clásicas se conservan. Se comparte el shell; el sistema visual se aplica a todas las pantallas de trabajo y las cuatro vistas añaden sus componentes propios. Los módulos permanecen directamente en src porque el servidor solo sirve archivos en ese nivel; no se cambia esa política para crear subcarpetas.
 
 ## Diferencias verificadas
 
@@ -47,3 +47,12 @@ Validación ejecutada con Node 24 y Chromium del sistema:
 Para revisar: `npm start`, abrir `#panel/poblacional`, pasar a Cohorte, buscar DEMO-002, abrir ficha y CMO. Añadir una actuación pendiente y recargar; los eventos previos permanecen. El filtro con señales muestra un caso en la cohorte inicial, que contiene dos señales. La tabla tiene desplazamiento horizontal local en móvil.
 
 La comprobación de teclado es básica y no equivale a una auditoría WCAG completa. CIMA solo se prueba con respuestas sintéticas interceptadas por las pruebas existentes. No se ha verificado un servicio clínico externo, enviado mensajes, hecho merge ni desplegado a producción.
+
+
+## Renovación visual
+
+El shell operativo, incluido el panel clásico, incorpora menú azul marino (#0a3258), acentos verde azulado (#096e70), superficies #f8fafc y encabezados con azul institucional (#0f4c81). Se renuevan cabecera, tipografía con fuentes locales, controles, tarjetas KPI, tablas, pestañas y foco visible. La portada, hospitales y páginas legales conservan su composición pública.
+
+La monitorización usa tarjetas de revisión en lugar de comprimir una tabla de seis columnas en media pantalla. Los niveles CMO se muestran con barras proporcionales al número real de casos sintéticos; no se añade una clasificación clínica. Los estados conservan texto y colores discretos. El estilo se adapta a escritorio y móvil, y no necesita fuentes, iconos ni servicios remotos.
+
+Tras esta renovación se han vuelto a ejecutar npm test (28/28), npm run check y npm run test:browser (circuitos clásico, público y desktop). Las capturas renovadas se han inspeccionado visualmente. No hay desbordamiento global a 390px ni errores de consola en los recorridos comprobados. La tabla de cohorte mantiene desplazamiento horizontal local.

@@ -327,11 +327,13 @@ function render() {
   const publica =
     route === "inicio" || route === "hospitales" || route.startsWith("legal");
   document.body.classList.toggle("pagina-publica", publica);
+  document.body.classList.toggle("pagina-trabajo", !publica);
+  $("workspaceBar").hidden = publica;
   document.body.classList.toggle("pagina-inicio", route === "inicio");
   $("nuevo").hidden = publica;
   document
     .querySelectorAll("nav a")
-    .forEach((a) => a.classList.toggle("active", a.hash === "#" + route));
+    .forEach((a) => a.classList.toggle("active", a.hash === "#" + route || (desktop && a.hash === "#panel/poblacional")));
   let title = "Panel de seguimiento",
     html = "";
   if (route === "inicio") {
