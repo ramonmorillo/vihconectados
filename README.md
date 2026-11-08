@@ -140,3 +140,11 @@ La cohorte `cohorte-2026-11-v2` contiene los tres perfiles descritos arriba. Sus
 - **Nuevo caso sintético** permite elegir un caso en blanco o un escenario. Los escenarios incluyen un nivel CMO simulado; el nivel manual se usa solo al crear en blanco. Cada caso obtiene su propia copia e historial independiente.
 
 La prueba de navegador añade comprobaciones de portada/hospitales sin credenciales, enlaces legales, actualización aditiva de datos antiguos, alta por escenario y tamaños móvil/escritorio. No realiza solicitudes externas al explorar estas pantallas. El acceso hospitalario real y la conformidad jurídica/accesibilidad formal permanecen pendientes.
+
+## Incremento Stitch · Estación de seguimiento
+
+Desde la navegación, abra **Estación de seguimiento** (`#panel/poblacional`). Incluye monitorización con métricas derivadas de los casos locales, cohorte con búsqueda/filtro, ficha longitudinal con cobertura por episodio e itinerario CMO conectado a los registros existentes. La vista clásica sigue disponible.
+
+Recorrido de revisión: monitorización → cohorte → buscar DEMO-002 → Ver ficha → Intervención CMO → registrar experiencia o añadir una actuación pendiente → marcar realizada → consultar informes. Recargar conserva los eventos. Todo es demostración local, sin envío ni firma. No se calculan retrasos de retirada, resultados virológicos ni adherencia objetiva.
+
+`npm run test:browser` incluye ahora `pruebas/desktop.mjs`. El mapa de reutilización, diferencias con el prototipo y revisión clínica pendiente están en `docs/INTEGRACION_STITCH.md`.
