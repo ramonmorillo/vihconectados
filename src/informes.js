@@ -1,3 +1,4 @@
+import { ultimaEvaluacionAdherencia, textoEvaluacionAdherencia } from "./adherencia.js";
 import {
   VERSION,
   REGLAS,
@@ -87,6 +88,7 @@ export function resumenInforme(i) {
     }));
   return {
     tratamiento,
+    evaluacion_adherencia: ultimaEvaluacionAdherencia(p, i.fecha),
     visita,
     actuaciones,
     revisiones: eventos.filter(
@@ -128,6 +130,9 @@ export function textoInforme(i) {
           "Sin señales con los parámetros de esta evaluación; no excluye problemas.",
         ]
       : []),
+    ...((c.excluidos || []).length ? ["TAR intramuscular: periodos excluidos del PDC oral. Sin evaluación de administración ni ventanas de inyección.", ...c.excluidos.map(e => `- ${e.inicio} → ${e.fin_exclusivo}: ${e.motivo}`)] : []),
+    "VALORACIÓN MANUAL DE ADHERENCIA",
+    textoEvaluacionAdherencia(s.evaluacion_adherencia),
     "EXPERIENCIA REGISTRADA",
     ...(s.visita
       ? Object.entries(s.visita.experiencia).map(
