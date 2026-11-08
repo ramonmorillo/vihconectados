@@ -1,5 +1,5 @@
 /** Motor demostrativo v1. Fechas UTC; intervalos [inicio, fin). Sin inferencia de toma. */
-export const VERSION = "0.2.0";
+export const VERSION = "0.3.0";
 export const REGLAS = Object.freeze({
   version: "demo-1",
   ventana: 180,

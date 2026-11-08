@@ -1,4 +1,4 @@
-# vihconectados · Fase 1 · v0.2.0
+# vihconectados · Fase 1 · v0.3.0
 
 Plataforma de demostración para el seguimiento longitudinal de la cobertura del TAR oral, experiencia del paciente, actuaciones CMO y coordinación Farmacia Hospitalaria–Infecciosas.
 
@@ -16,13 +16,13 @@ El servidor usa el puerto 5173 (`PORT` permite cambiarlo). Abra el servidor en s
 
 ## Recorrido de demostración
 
-La primera apertura crea tres casos independientes y fija la fecha de evaluación inicial en **2026-11-08** para reproducibilidad. Puede cambiarla con el selector de corte (final excluido).
+La portada permite entrar en la demostración sin registro ni contraseña. También puede acceder directamente a `#panel`. La primera apertura crea tres casos independientes y fija la fecha de evaluación inicial en **2026-11-08** para reproducibilidad. Puede cambiarla con el selector de corte (final excluido).
 
-1. **DEMO-001:** hueco de cobertura y barreras sintéticas. Abra el caso, revise señales y registre una revisión simulada.
+1. **DEMO-001:** barreras de acceso, recogidas irregulares, dos visitas e informe recibido, con coordinación pendiente. Abra el caso, revise señales y registre una revisión simulada.
 2. En **Experiencia**, añada una visita con opciones cerradas; en **Intervenciones CMO**, seleccione un texto y marque la actuación como realizada.
 3. Genere un informe y avance por pendiente → comunicado → recibido → valorado → resuelto. **No se envía nada.** Se conserva cada transición.
-4. **DEMO-002:** cambio TAR_A → TAR_B sin dispensación del nuevo episodio. El sobrante anterior no cubre el nuevo TAR.
-5. **DEMO-003:** cobertura más continua, sin señales con los parámetros iniciales. Esto no prueba adherencia ni control clínico.
+4. **DEMO-002:** cambio TAR_A → TAR_B con dispensaciones propias de cada episodio, evolución de la experiencia y comunicación valorada. El sobrante anterior no cubre el nuevo TAR.
+5. **DEMO-003:** cobertura simultánea de dos componentes, dos visitas y actuaciones realizadas, sin señales con los parámetros iniciales. Esto no prueba adherencia ni control clínico.
 6. Cree un caso ficticio: su identificador DEMO se genera automáticamente. En **Registrar cambio TAR**, busque el medicamento en CIMA, revise su ficha y seleccione presentación. Añada todos los medicamentos del TAR oral y confirme la revisión. Descargue su plantilla CSV e impórtela desde archivo o texto. Importe de nuevo para comprobar la detección de duplicados.
 
 ## Funciones operativas y simulaciones
@@ -67,12 +67,14 @@ Obtenga el UUID y componentes válidos mediante **Descargar CSV de ejemplo** en 
 - `src/informes.js`: instantáneas y texto para historia; `src/vista-informes.js` y `src/informes.css`: composición A4 e impresión.
 - `src/cima.js` y `src/medicacion.js`: adaptador AEMPS y selección del TAR.
 - `src/recursos.js`: enlaces y atribución de MAPEX-ADHEFAR Hub.
-- `src/demo.js`: casos ficticios reproducibles.
+- `src/demo.js`: escenarios ficticios reproducibles y actualización aditiva de cohorte.
+- `src/portada.js`, `src/legal.js`, `src/institucional.css`: presentación, información legal y futuro acceso de hospitales.
+- `src/acceso.js`: contrato de proveedor de acceso y adaptador exclusivo de demostración, sin autenticación real.
 - `src/app.js`, `src/estilos.css`: interfaz responsive y formularios cerrados.
 - `servidor.mjs`: servidor de archivos con rutas permitidas y CSP; sin API de escritura.
 - `datos/`: copias literales de biblioteca y guion VIH con sus metadatos de origen.
 
-Esquemas `vihconectados/demo@1`, `vihconectados/informe@1` y `vihconectados/informe-paciente@1`; versión de aplicación 0.2.0. Los datos guardados de la versión anterior se conservan sin migración destructiva. El adaptador institucional futuro necesita comandos validados en servidor, concurrencia y autorización; reemplazar localStorage por una API no basta.
+Esquemas `vihconectados/demo@1`, `vihconectados/informe@1` y `vihconectados/informe-paciente@1`; versión de aplicación 0.3.0. Los datos guardados de la versión anterior se conservan sin migración destructiva. El adaptador institucional futuro necesita comandos validados en servidor, concurrencia y autorización; reemplazar localStorage por una API no basta.
 
 ## Pruebas
 
@@ -120,3 +122,21 @@ Genere el informe y abra **Ver e imprimir**. La vista A4 contiene identidad fict
 ### Recursos de adherencia
 
 La navegación incluye **Recursos de adherencia** con [MAPEX-ADHEFAR Hub](https://ramonmorillo.es/adhefarmapexhub/) y su espacio para pacientes y cuidadores. Se enlaza, sin incrustar contenido ni enviar contexto clínico. Se puede incluir en la hoja del paciente. Se ha consultado en solo lectura el repositorio `ramonmorillo/adhefarmapexhub`, commit `8750436e9e263424da44f5f32e8d7702c6240c05`, para confirmar las páginas y atribución. No se ha incorporado su motor ni se han convertido sus materiales en reglas clínicas.
+
+## Novedades 0.3 · Autoría, presentación y hospitales
+
+La portada `#inicio` presenta el proyecto, su autor y el circuito asistencial. El botón **Entrar en la demostración** mantiene el acceso libre. No hay registro ni requisito de aceptar una falsa cuenta. Las rutas directas de la aplicación continúan disponibles.
+
+El pie de todas las pantallas enlaza seis apartados: autoría y reconocimiento, condiciones de uso, privacidad/almacenamiento, aviso legal, fuentes/citación y accesibilidad. Se han adaptado al comportamiento real de vihconectados tomando como referencia el enfoque legal del proyecto MAPEX-ADHEFAR: autoría de Ramón Morillo Verdugo, vocación gratuita/no comercial y prudencia sobre cesión o aval institucional. No se afirma que haya una cesión formal, derechos sobre contenidos ajenos, certificación de accesibilidad o cumplimiento institucional ya aprobado. Los datos de explotación y contacto institucional deberán completarse antes de habilitar un servicio real.
+
+`#hospitales` explica el futuro acceso con cuentas personales asociadas al hospital, permisos diferenciados y separación de datos aplicada en servidor. **No hay un formulario de contraseñas, usuarios reales, servidor de identidad, Supabase o aislamiento hospitalario activo.** El adaptador actual devuelve un contexto sin identidad ni roles y rechaza el inicio de sesión. Véase [diseño de acceso hospitalario](docs/ACCESO_HOSPITALARIO.md); cambiar una constante o esconder botones no habilita seguridad institucional.
+
+### Casos actualizados sin pérdida de histórico
+
+La cohorte `cohorte-2026-11-v2` contiene los tres perfiles descritos arriba. Sus niveles, tratamientos A/B/C/D, experiencias y estados son sintéticos. Los tratamientos no son prescripciones ni resultados clínicos reales; no se fabrican fichas CIMA.
+
+- Navegadores sin datos cargan la nueva cohorte al abrir la aplicación.
+- Si ya hay casos guardados, **Casos sintéticos → Añadir casos actualizados** incorpora solo los perfiles que falten en esta cohorte. Conserva íntegros los casos y los informes anteriores y asigna IDs nuevos. No borra, sustituye ni fusiona silenciosamente visitas.
+- **Nuevo caso sintético** permite elegir un caso en blanco o un escenario. Los escenarios incluyen un nivel CMO simulado; el nivel manual se usa solo al crear en blanco. Cada caso obtiene su propia copia e historial independiente.
+
+La prueba de navegador añade comprobaciones de portada/hospitales sin credenciales, enlaces legales, actualización aditiva de datos antiguos, alta por escenario y tamaños móvil/escritorio. No realiza solicitudes externas al explorar estas pantallas. El acceso hospitalario real y la conformidad jurídica/accesibilidad formal permanecen pendientes.

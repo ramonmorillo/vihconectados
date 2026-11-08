@@ -39,6 +39,9 @@ page.on("console", (m) => {
   if (m.type() === "error") errors.push(m.text());
 });
 await page.goto("http://127.0.0.1:5173");
+await page
+  .getByRole("link", { name: "Entrar en la demostración →", exact: true })
+  .click();
 await page.getByRole("heading", { name: "Seguimiento de casos" }).waitFor();
 await page.screenshot({ path: "/tmp/vih-panel.png", fullPage: true });
 await page.getByRole("button", { name: "Ver caso" }).first().click();

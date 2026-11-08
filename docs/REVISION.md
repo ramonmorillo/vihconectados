@@ -1,5 +1,14 @@
 # Propuesta de revisión
 
+## Ampliación 0.3
+
+Portada pública con acceso libre y una explicación del futuro acceso individual por hospital; sin cuentas ficticias ni recogida de credenciales. Adaptador de demostración y diseño documentado de identidad, pertenencias, roles, autorización y separación de datos en servidor.
+
+Se añaden seis apartados legales y un pie común con autoría, condiciones, privacidad real del almacenamiento/consultas externas, aviso legal, fuentes/citación y accesibilidad. El enfoque procede de los avisos del autor en MAPEX-ADHEFAR; no se presume cesión, aval, licencia ajena ni conformidad jurídica certificada.
+
+Cohorte sintética renovada con experiencias y visitas longitudinales, cambio de TAR y multicomponente. Nuevos casos en blanco o por escenario; actualización aditiva e idempotente para navegadores con datos anteriores. No se reescriben historiales ni informes. Validación: 26 pruebas unitarias y dos recorridos Chromium.
+
+
 ## Ampliación 0.2
 
 Entrada de TAR desde el catálogo CIMA/AEMPS con ficha, presentación y confirmación del régimen; conserva metadatos en cada episodio y adapta el CSV por medicamento. Se mantienen los ejemplos y los informes anteriores sin reescribirlos.

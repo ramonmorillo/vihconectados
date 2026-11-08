@@ -1,13 +1,13 @@
 {
   "name": "vihconectados",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node servidor.mjs",
     "test": "node --test pruebas/*.test.mjs",
-    "check": "node --check src/motor.js && node --check src/app.js && node --check src/almacen.js && node --check src/informes.js && node --check src/cima.js && node --check src/medicacion.js && node --check src/vista-informes.js && node --check src/recursos.js && node --check servidor.mjs",
-    "test:browser": "node pruebas/navegador.mjs"
+    "check": "node --check src/motor.js && node --check src/app.js && node --check src/almacen.js && node --check src/informes.js && node --check src/cima.js && node --check src/medicacion.js && node --check src/vista-informes.js && node --check src/recursos.js && node --check servidor.mjs && node --check src/acceso.js && node --check src/portada.js && node --check src/legal.js && node --check src/demo.js",
+    "test:browser": "node pruebas/navegador.mjs && node pruebas/publico.mjs"
   },
   "engines": {
     "node": ">=22"

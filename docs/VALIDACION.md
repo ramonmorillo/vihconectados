@@ -1,5 +1,16 @@
 # Validación técnica ejecutada
 
+## Versión 0.3.0 — Información legal, portada y hospitales
+
+08/11/2026. `npm run check`: correcto. `npm test`: 26 pruebas ejecutadas y pasadas, sin fallos ni omisiones. Se mantienen las comprobaciones de cobertura, CIMA, histórico e informes; se añaden cohorte diferenciada, actualización aditiva/idempotente, independencia de casos, acceso sin identidad y rechazo del inicio de sesión institucional.
+
+`npm run test:browser` ejecuta ahora dos recorridos Chromium: el circuito asistencial anterior y el recorrido público. Se han comprobado portada, acceso libre a la demo, ruta de hospitales sin campos de usuario/contraseña, seis páginas legales accesibles desde el pie, importación aditiva de la nueva cohorte sobre datos antiguos sin alterar sus eventos e informes, y creación de un caso independiente desde un escenario. Consola sin errores, sin solicitudes externas al navegar las pantallas públicas y sin desbordamiento global a 390 px en portada, hospitales y privacidad.
+
+Capturas revisadas: `/tmp/vih-landing.png`, `/tmp/vih-landing-movil.png`, `/tmp/vih-legal.png`. Los casos de demostración de la cohorte anterior se conservan; la actualización visible requiere pulsar Añadir casos actualizados cuando ya hay datos en el navegador.
+
+No se han implementado o probado cuentas institucionales, contraseñas, autorización real, aislamiento hospitalario o backend. La arquitectura prevista está en ACCESO_HOSPITALARIO.md. Los textos legales se han adaptado tras consultar en solo lectura `acerca.html` del proyecto MAPEX-ADHEFAR (commit 8750436e9e263424da44f5f32e8d7702c6240c05); no constituyen auditoría jurídica, aprobación institucional o declaración de cumplimiento WCAG. Los datos de explotación/contacto institucional siguen pendientes de formalización.
+
+
 ## Versión 0.2.0 — CIMA, informes y recursos
 
 08/11/2026. No es validación clínica.

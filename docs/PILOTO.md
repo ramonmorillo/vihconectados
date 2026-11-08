@@ -1,6 +1,6 @@
 # Limitaciones y requisitos para un futuro piloto clínico
 
-Estado 0.2.0, 08/11/2026. Material de demostración con datos sintéticos. Autor: Dr. Ramón Morillo Verdugo.
+Estado 0.3.0, 08/11/2026. Material de demostración con datos sintéticos. Autor: Dr. Ramón Morillo Verdugo.
 
 ## Límites actuales
 
@@ -33,3 +33,11 @@ Revisar el filtro de catálogo y su mantenimiento con fuentes oficiales, resolve
 La hoja del paciente requiere gobernanza de las instrucciones, accesibilidad del documento, lenguaje comprensible y validación profesional de cada pauta. No se han validado comprensión en pacientes, impresoras físicas, lectores PDF diferentes o firma documental. Antes de uso clínico deben establecerse emisor/roles reales y circuito de entrega. El botón de copia requiere revisión del texto y autorización institucional; no constituye integración de historia clínica.
 
 El recurso MAPEX-ADHEFAR Hub es externo y complementario. Revisar con el equipo qué materiales son apropiados y las condiciones de uso; enlazarlo no valida clínicamente vihconectados.
+
+## Ampliación 0.3 · Información legal y acceso futuro
+
+Las páginas legales describen el estado de demostración y no acreditan cumplimiento RGPD, validación clínica, aval de SEFH, cesión formal o conformidad WCAG. El titular de explotación, contacto institucional, DPD y acuerdos deben definirse antes de un servicio real. Se mantiene la autoría del Dr. Ramón Morillo Verdugo y los derechos de las fuentes.
+
+La portada no es una barrera de seguridad: se entra libremente a la demo sin credenciales. No hay altas ni recogida de contraseñas. Las cuentas por hospital están solo diseñadas; las pruebas de aislamiento y autorización del futuro servidor son condición previa al piloto. Véase ACCESO_HOSPITALARIO.md. Nunca compartir una contraseña por hospital ni reutilizar localStorage como almacén institucional.
+
+Los casos nuevos pueden partir de escenarios longitudinales. Actualizar la cohorte es aditivo e idempotente; no transforma datos o informes previos. Todas las etiquetas y eventos de ejemplo son sintéticos y no sustituyen datos clínicos de validación.

@@ -13,7 +13,16 @@ import {
   validarReglas,
 } from "./motor.js";
 import { RepositorioDemo, crearPaciente, anexar } from "./almacen.js";
-import { demo } from "./demo.js";
+import {
+  demo,
+  ESCENARIOS,
+  VERSION_COHORTE,
+  crearCasoEscenario,
+  incorporarCohorte,
+} from "./demo.js";
+import { portada, hospitales } from "./portada.js";
+import { paginaLegal, enlacesLegales, AUTORIA } from "./legal.js";
+import { AccesoDemostracion } from "./acceso.js";
 import { informe, informePaciente, textoInforme } from "./informes.js";
 import { vistaInforme } from "./vista-informes.js";
 import { abrirSeleccionTar } from "./medicacion.js";
@@ -34,6 +43,12 @@ const $ = (id) => document.getElementById(id),
         })[c],
     );
 const repo = new RepositorioDemo(localStorage);
+const proveedorAcceso = new AccesoDemostracion();
+const contextoAcceso = await proveedorAcceso.obtenerContexto();
+$("enlacesLegales").innerHTML = enlacesLegales();
+$("versionLegal").textContent = "v" + AUTORIA.version;
+if (contextoAcceso.modo !== "demostracion")
+  throw Error("Este cliente solo admite el modo de demostración.");
 let db,
   tab = "resumen",
   seleccion = "",
@@ -111,7 +126,7 @@ function tabla(ps) {
       .map((p) => {
         const c = cobertura(p, fin, reglas),
           a = alertas(p, fin, reglas);
-        return `<tr><td><strong>${p.id}</strong><br><small class="muted">${esc(nombreTar(episodios(p).at(-1)))}</small></td><td>${badge("Nivel " + nivel(p))}</td><td>${pct(c)}<div class="bar"><div class="bar-fill" data-pct="${c.pdc === null ? 0 : c.pdc * 100}"></div></div></td><td>${badge(a.length ? a.length + " señales" : "Sin señales", !!a.length)}</td><td>${boton("abrir", "Ver caso", p.id)}</td></tr>`;
+        return `<tr><td><strong>${p.id}</strong>${p.escenario ? `<span class="case-profile">${esc(p.escenario.titulo)}</span>` : ""}<br><small class="muted">${esc(nombreTar(episodios(p).at(-1)))}</small></td><td>${badge("Nivel " + nivel(p))}</td><td>${pct(c)}<div class="bar"><div class="bar-fill" data-pct="${c.pdc === null ? 0 : c.pdc * 100}"></div></div></td><td>${badge(a.length ? a.length + " señales" : "Sin señales", !!a.length)}</td><td>${boton("abrir", "Ver caso", p.id)}</td></tr>`;
       })
       .join("") ||
     '<tr><td colspan="5">No hay casos. Cree un caso sintético para comenzar.</td></tr>'
@@ -248,7 +263,7 @@ function recursos() {
 function caso(p) {
   const c = cobertura(p, fin, reglas),
     a = alertas(p, fin, reglas);
-  let html = `<p class="muted"><a href="#pacientes">← Todos los casos</a> / ${p.id} · Solo datos sintéticos</p><div class="tabs" role="group" aria-label="Secciones del caso">${[
+  let html = `<p class="muted"><a href="#pacientes">← Todos los casos</a> / ${p.id} · Solo datos sintéticos</p>${p.escenario ? `<div class="notice cohorte-caption"><strong>${esc(p.escenario.titulo)}</strong><br>${esc(p.escenario.descripcion)}<br><small>Caso ficticio · ${esc(p.escenario.version)}</small></div>` : ""}<div class="tabs" role="group" aria-label="Secciones del caso">${[
     ["resumen", "Resumen"],
     ["historia", "Historia longitudinal"],
     ["adherencia", "Cobertura TAR"],
@@ -305,20 +320,42 @@ function modelo() {
   return `<section class="card"><h2>Modelo CMO-MAPEX</h2><p class="intro">Capacidad, Motivación y Oportunidad: la tecnología apoya la continuidad de la atención, y la valoración corresponde al profesional.</p><h3>Reglas de demostración · ${esc(reglas.version)}</h3><p>Ventana: ${reglas.ventana} días · Parámetro de señal: ${Math.round(reglas.umbral * 100)} %</p><p class="muted">Proceden de reglas v0.2.0 del preparador: pendientes de validación. La cobertura usa inicio de tratamiento explícito y unión por componente con intersección del TAR completo. No estima ingesta, supresión virológica ni riesgo clínico. No incluye TAR inyectable, hospitalizaciones ni dispensación externa.</p>${boton("reglas", "Configurar parámetros de demostración")}<h3>Privacidad y almacenamiento</h3><p class="muted">Sin campos de nombres, documentos o contactos. Las instrucciones de la hoja del paciente son texto local y deben ser exclusivamente sintéticas. Los casos se generan con prefijo DEMO. Los datos se guardan en este navegador; no hay envío de casos, analítica, backend clínico o API generativa. Solo las búsquedas explícitas de medicamentos consultan CIMA (AEMPS), sin datos del caso. El almacenamiento local no ofrece las garantías de un sistema sanitario.</p><h3>Fuentes y autoría</h3><p class="muted">Autor: Dr. Ramón Morillo Verdugo. Adaptaciones CMO: Sociedad Española de Farmacia Hospitalaria (SEFH). Biblioteca y guion conservan sus metadatos originales. No se declara validación clínica ni licencia de terceros no otorgada.</p><div class="actions">${boton("exportar", "Exportar demostración JSON")}</div></section>`;
 }
 function render() {
-  const route = location.hash.slice(1) || "panel";
+  const route = location.hash.slice(1) || "inicio";
+  const publica =
+    route === "inicio" || route === "hospitales" || route.startsWith("legal");
+  document.body.classList.toggle("pagina-publica", publica);
+  document.body.classList.toggle("pagina-inicio", route === "inicio");
+  $("nuevo").hidden = publica;
   document
     .querySelectorAll("nav a")
     .forEach((a) => a.classList.toggle("active", a.hash === "#" + route));
   let title = "Panel de seguimiento",
     html = "";
-  if (route.startsWith("caso/")) {
+  if (route === "inicio") {
+    title = "vihconectados · Seguimiento compartido";
+    html = portada();
+  } else if (route === "hospitales") {
+    title = "Hospitales y acceso individual";
+    html = hospitales();
+  } else if (route === "legal" || route.startsWith("legal/")) {
+    title = "Autoría, privacidad y condiciones";
+    html = paginaLegal(route.split("/")[1]);
+  } else if (route.startsWith("caso/")) {
     seleccion = route.slice(5);
     const p = paciente();
     title = seleccion;
     html = p ? caso(p) : "<p>Caso no encontrado.</p>";
   } else if (route === "pacientes") {
     title = "Casos sintéticos";
-    html = `<p class="intro">Historias independientes para explorar el circuito asistencial.</p><section class="card">${tabla(db.pacientes)}</section>`;
+    const faltan = ESCENARIOS.filter(
+      (e) =>
+        !db.pacientes.some(
+          (p) =>
+            p.escenario?.id === e.id &&
+            p.escenario?.version === VERSION_COHORTE,
+        ),
+    );
+    html = `<p class="intro">Historias ficticias independientes para explorar el circuito asistencial. Los nuevos casos pueden crearse en blanco o a partir de un escenario.</p>${faltan.length ? `<div class="notice cohorte-notice"><strong>Cohorte de demostración actualizada</strong><br>Puede añadir ${faltan.length} escenarios nuevos. Sus casos e informes guardados se conservan.<br>${boton("actualizar-cohorte", "Añadir casos actualizados")}</div>` : ""}<section class="card">${tabla(db.pacientes)}</section>`;
   } else if (route === "comunicaciones") {
     title = "Comunicación con Infecciosas";
     html =
@@ -333,32 +370,46 @@ function render() {
   } else html = panel();
   $("titulo").textContent = title;
   $("contenido").innerHTML =
-    `<label class="no-print filtro">Fecha de corte de la evaluación<input id="corte" type="date" value="${fin}"></label>` +
+    (publica
+      ? ""
+      : `<label class="no-print filtro">Fecha de corte de la evaluación<input id="corte" type="date" value="${fin}"></label>`) +
     html;
   document
     .querySelectorAll("[data-pct]")
     .forEach((el) => (el.style.width = el.dataset.pct + "%"));
-  $("corte").onchange = (ev) => {
-    if (ev.target.value) {
-      fin = ev.target.value;
-      render();
-    }
-  };
+  if ($("corte"))
+    $("corte").onchange = (ev) => {
+      if (ev.target.value) {
+        fin = ev.target.value;
+        render();
+      }
+    };
 }
-$("nuevo").onclick = () =>
+$("nuevo").onclick = () => {
   modal(
     "Nuevo caso ficticio",
-    campo(
-      "nivel",
-      "Nivel CMO asignado (simulado)",
-      select("nivel", ["1", "2", "3"]),
-    ),
+    `<label>Tipo de caso<select name="perfil" id="perfilNuevo"><option value="blanco">Caso en blanco</option>${ESCENARIOS.map((e) => `<option value="${e.id}">${esc(e.titulo)} · CMO ${e.nivel}</option>`).join("")}</select></label>` +
+      campo(
+        "nivel",
+        "Nivel CMO asignado (solo para caso en blanco)",
+        select("nivel", ["1", "2", "3"]),
+      ) +
+      '<p class="muted">Los escenarios traen un nivel, visitas y tratamientos ficticios. No se copian datos de otro caso ni se consulta CIMA automáticamente.</p>',
     (v) => {
-      guardar(crearPaciente(db, v.nivel));
+      guardar(
+        v.perfil === "blanco"
+          ? crearPaciente(db, v.nivel)
+          : crearCasoEscenario(db, v.perfil),
+      );
       location.hash = "caso/" + db.pacientes.at(-1).id;
       tab = "resumen";
     },
   );
+  $("perfilNuevo").onchange = () => {
+    const n = $("formulario").querySelector("[name=nivel]");
+    n.disabled = $("perfilNuevo").value !== "blanco";
+  };
+};
 $("cerrar").onclick = () => $("modal").close();
 document.addEventListener("click", async (ev) => {
   const bt = ev.target.closest("[data-tab]");
@@ -373,6 +424,13 @@ document.addEventListener("click", async (ev) => {
     id = b.dataset.id,
     p = paciente();
   try {
+    if (a === "actualizar-cohorte") {
+      const prev = db.pacientes.length;
+      guardar(incorporarCohorte(db));
+      flash(
+        `${db.pacientes.length - prev} casos nuevos añadidos; el histórico anterior se conserva.`,
+      );
+    }
     if (a === "abrir") {
       tab = "resumen";
       location.hash = "caso/" + id;
@@ -584,7 +642,11 @@ document.addEventListener("change", async (ev) => {
     }
   }
 });
-window.addEventListener("hashchange", render);
+window.addEventListener("hashchange", () => {
+  $("mensaje").textContent = "";
+  $("mensaje").className = "";
+  render();
+});
 try {
   [biblioteca, guia] = await Promise.all(
     ["biblioteca-vih", "guia-vih"].map(async (n) => {

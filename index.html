@@ -9,8 +9,14 @@
       content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://cima.aemps.es; img-src 'self'; object-src 'none'; base-uri 'none'"
     />
     <meta name="referrer" content="no-referrer" />
+    <meta name="author" content="Dr. Ramón Morillo Verdugo" />
+    <meta
+      name="description"
+      content="Demostración de seguimiento longitudinal CMO-MAPEX y coordinación Farmacia Hospitalaria–Infecciosas. Autor: Dr. Ramón Morillo Verdugo. Solo datos sintéticos."
+    />
     <link rel="stylesheet" href="src/estilos.css" />
     <link rel="stylesheet" href="src/informes.css" />
+    <link rel="stylesheet" href="src/institucional.css" />
   </head>
   <body>
     <div class="demo-banner">
@@ -22,15 +28,18 @@
           >vih<span>conectados</span><small>FARMACIA + INFECCIOSAS</small></a
         >
         <nav aria-label="Navegación principal">
-          <a href="#panel">Panel de seguimiento</a
+          <a href="#inicio">Presentación</a
+          ><a href="#panel">Panel de seguimiento</a
           ><a href="#pacientes">Casos sintéticos</a
           ><a href="#comunicaciones">Comunicaciones</a
           ><a href="#modelo">Modelo y reglas</a
-          ><a href="#recursos">Recursos de adherencia</a>
+          ><a href="#recursos">Recursos de adherencia</a
+          ><a href="#hospitales">Futuro acceso hospitalario</a
+          ><a href="#legal/autoria">Autoría y uso</a>
         </nav>
         <div class="aside-foot">
           CMO · MAPEX<small
-            >Dr. Ramón Morillo Verdugo<br />Fase 1 · v0.2.0</small
+            >Dr. Ramón Morillo Verdugo<br />Fase 1 · v0.3.0</small
           >
         </div>
       </aside>
@@ -47,6 +56,15 @@
         <footer>
           Apoyo a la revisión profesional. Cobertura de dispensación ≠ toma del
           tratamiento. Criterios pendientes de validación.
+          <div class="legal-credit">
+            © 2026 · Dr. Ramón Morillo Verdugo · vihconectados
+            <span id="versionLegal"></span>
+          </div>
+          <nav
+            class="legal-links"
+            id="enlacesLegales"
+            aria-label="Información legal"
+          ></nav>
         </footer>
       </main>
     </div>
