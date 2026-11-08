@@ -1,3 +1,4 @@
+import { validarEvaluacionAdherencia } from "./adherencia.js";
 import { validarMedicamentos } from "./cima.js";
 import {
   CATALOGOS,
@@ -7,6 +8,7 @@ import {
   ESTADOS,
   estadoComunicacion,
   transicion,
+  prepararDispensacionManual,
 } from "./motor.js";
 const copia = (x) => structuredClone(x);
 export const vacio = () => ({ formato: "vihconectados/demo@1", pacientes: [] });
@@ -58,6 +60,7 @@ export function anexar(db, id, evento) {
   const e = copia(evento);
   if (e.fecha) fecha(e.fecha);
   if (e.tipo === "tratamiento") {
+    if (e.tar !== "CIMA" && e.modalidad && e.modalidad !== "oral") throw Error("La modalidad intramuscular requiere medicamentos seleccionados desde CIMA.");
     if (
       (!CATALOGOS[e.tar] && e.tar !== "CIMA") ||
       !e.fecha ||
@@ -65,9 +68,9 @@ export function anexar(db, id, evento) {
     )
       throw Error("Añada el TAR después del último inicio registrado");
     if (e.tar === "CIMA") {
-      validarMedicamentos(e.medicamentos);
+      validarMedicamentos(e.medicamentos, e.modalidad || "oral");
       if (e.confirmado !== true)
-        throw Error("Confirme la revisión del TAR oral completo.");
+        throw Error("Confirme la revisión del TAR completo.");
     }
   } else if (e.tipo === "visita") {
     if (
@@ -79,6 +82,17 @@ export function anexar(db, id, evento) {
       throw Error("Experiencia no válida");
     if (p.eventos.some((x) => x.tipo === "visita" && x.fecha > e.fecha))
       throw Error("Fecha anterior a la última visita");
+  } else if (e.tipo === "evaluacion_adherencia") {
+    validarEvaluacionAdherencia(e);
+  } else if (e.tipo === "importacion" && e.fuente === "Entrada manual") {
+    const filas = e.filas || [];
+    if (!filas.length || filas.some(f => f.fecha !== filas[0].fecha || f.episodio !== filas[0].episodio))
+      throw Error("Registro manual vacío o incompatible.");
+    const validado = prepararDispensacionManual(p, { fecha: filas[0].fecha, episodio: filas[0].episodio, suministros: filas });
+    if (!validado.filas.length) throw Error("La dispensación ya está registrada; no se añade un duplicado.");
+    e.filas = validado.filas;
+    e.duplicadas = (e.duplicadas || []).filter(n => Number.isInteger(n) && n >= 2);
+    e.fecha = filas[0].fecha;
   } else if (e.tipo === "nivel") {
     if (!["1", "2", "3"].includes(e.nivel)) throw Error("Nivel inválido");
   } else if (e.tipo === "actuacion") {

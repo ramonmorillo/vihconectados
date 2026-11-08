@@ -71,6 +71,7 @@ export function episodios(p) {
 }
 /** Una combinación fija CIMA es una unidad dispensable; un TAR con varios fármacos exige todos. */
 export function componentes(ep) {
+  if (ep?.modalidad === "inyectable") return [];
   return ep?.medicamentos?.length
     ? ep.medicamentos.map((m) => "CIMA-" + m.nregistro)
     : CATALOGOS[ep?.tar] || [];
@@ -142,6 +143,21 @@ export function importarCSV(p, texto) {
   });
   return { filas, duplicadas };
 }
+/** Entrada manual que comparte validación y deduplicación con la importación CSV. */
+export function prepararDispensacionManual(p, { fecha: dia, episodio, suministros }) {
+  const ep = episodios(p).find(e => e.id === episodio);
+  if (!ep || ep.modalidad === "inyectable") throw Error("Seleccione un episodio oral; los inyectables no se registran como días de suministro oral.");
+  if (!Array.isArray(suministros) || !suministros.length || suministros.length > 8)
+    throw Error("Indique días para al menos un medicamento (máximo 8).");
+  const usados = new Set();
+  for (const fila of suministros) {
+    if (!componentes(ep).includes(fila.componente) || usados.has(fila.componente) || !Number.isInteger(fila.dias) || fila.dias < 1 || fila.dias > 400)
+      throw Error("Medicamento no válido, repetido o días fuera del rango 1–400.");
+    usados.add(fila.componente);
+  }
+  fecha(dia);
+  return importarCSV(p, "fecha;episodio;componente;dias\n" + suministros.map(f => `${dia};${ep.id};${f.componente};${f.dias}`).join("\n"));
+}
 export function cobertura(p, fin, r = REGLAS) {
   validarReglas(r);
   const end = fecha(fin),
@@ -151,13 +167,17 @@ export function cobertura(p, fin, r = REGLAS) {
     end - r.ventana,
     eps.length ? fecha(eps[0].fecha) : end,
   );
-  const detalle = [];
+  const detalle = [], excluidos = [];
   let cubiertos = 0,
     total = 0;
   eps.forEach((ep, i) => {
     const a = Math.max(inicio, fecha(ep.fecha)),
       b = Math.min(end, eps[i + 1] ? fecha(eps[i + 1].fecha) : end);
     if (b <= a) return;
+    if (ep.modalidad === "inyectable") {
+      excluidos.push({ episodio: ep.id, tar: nombreTar(ep), inicio: iso(a), fin_exclusivo: iso(b), total: b-a, motivo: "TAR intramuscular: PDC oral no aplicable; sin cálculo de ventanas de administración." });
+      return;
+    }
     const comps = componentes(ep);
     if (!comps.length)
       throw Error(
@@ -200,6 +220,7 @@ export function cobertura(p, fin, r = REGLAS) {
     total,
     pdc: total ? cubiertos / total : null,
     detalle,
+    excluidos,
     reglas: { ...r },
     version: VERSION,
   };
@@ -207,12 +228,14 @@ export function cobertura(p, fin, r = REGLAS) {
 export function alertas(p, fin, r = REGLAS) {
   const c = cobertura(p, fin, r),
     lista = [];
-  if (c.pdc === null)
+  if (c.excluidos.length)
+    lista.push({ regla: "tar_inyectable_no_evaluable", texto: "El periodo de TAR intramuscular se excluye del PDC oral. No se evalúan asistencia, administración ni ventanas de inyección." });
+  if (c.pdc === null && !c.excluidos.length)
     lista.push({
       regla: "sin_datos",
       texto: "Sin intervalo evaluable; cobertura no calculada.",
     });
-  else if (c.pdc < r.umbral)
+  else if (c.pdc !== null && c.pdc < r.umbral)
     lista.push({
       regla: "cobertura_demo",
       texto: `Cobertura ${c.cubiertos}/${c.total} días por debajo del parámetro demostrativo ${Math.round(r.umbral * 100)} %. No acredita falta de toma.`,

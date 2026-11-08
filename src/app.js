@@ -1,3 +1,4 @@
+import { abrirDispensacionManual, abrirEvaluacionManual, vistaEvaluacionesManuales } from "./registro-manual.js";
 import { navegacionDesktop, vistaPoblacional, vistaCohorte, conectarCohorte, resumenLongitudinal, itinerarioCMO } from "./desktop.js";
 import {
   REGLAS,
@@ -65,7 +66,7 @@ const boton = (a, t, id = "") =>
   `<button data-action="${a}" data-id="${esc(id)}">${esc(t)}</button>`;
 const pct = (c) =>
   c.pdc === null
-    ? "Sin cálculo"
+    ? (c.excluidos?.length ? "No aplicable" : "Sin cálculo")
     : new Intl.NumberFormat("es", {
         style: "percent",
         maximumFractionDigits: 1,
@@ -127,7 +128,7 @@ function tabla(ps) {
       .map((p) => {
         const c = cobertura(p, fin, reglas),
           a = alertas(p, fin, reglas);
-        return `<tr><td><strong>${p.id}</strong>${p.escenario ? `<span class="case-profile">${esc(p.escenario.titulo)}</span>` : ""}<br><small class="muted">${esc(nombreTar(episodios(p).at(-1)))}</small></td><td>${badge("Nivel " + nivel(p))}</td><td>${pct(c)}<div class="bar"><div class="bar-fill" data-pct="${c.pdc === null ? 0 : c.pdc * 100}"></div></div></td><td>${badge(a.length ? a.length + " señales" : "Sin señales", !!a.length)}</td><td>${boton("abrir", "Ver caso", p.id)}</td></tr>`;
+        return `<tr><td><strong>${p.id}</strong>${p.escenario ? `<span class="case-profile">${esc(p.escenario.titulo)}</span>` : ""}<br><small class="muted">${esc(nombreTar(episodios(p).at(-1)))}</small></td><td>${badge("Nivel " + nivel(p))}</td><td>${pct(c)}${c.excluidos.length ? '<br><small>PDC oral · periodos intramusculares excluidos</small>' : ''}<div class="bar"><div class="bar-fill" data-pct="${c.pdc === null ? 0 : c.pdc * 100}"></div></div></td><td>${badge(a.length ? a.length + " señales" : "Sin señales", !!a.length)}</td><td>${boton("abrir", "Ver caso", p.id)}</td></tr>`;
       })
       .join("") ||
     '<tr><td colspan="5">No hay casos. Cree un caso sintético para comenzar.</td></tr>'
@@ -174,7 +175,7 @@ function panel() {
     )
     .join(
       "",
-    )}</div><div class="grid"><section class="card"><div class="section-head"><h2>Seguimiento de casos</h2>${badge("TAR oral")}</div>${tabla(db.pacientes)}</section><section class="card"><p class="eyebrow">FARMACIA → INFECCIOSAS</p><h2>Continuidad, paso a paso</h2><p class="muted">1. Revisar cobertura y contexto<br>2. Registrar la experiencia y actuación<br>3. Generar un informe fijo<br>4. Simular recepción y resolución</p><div class="notice">Ningún informe se envía. Cada cambio de estado queda registrado.</div><div class="actions"><a href="#comunicaciones">Ver comunicaciones →</a></div></section></div>`;
+    )}</div><div class="grid"><section class="card"><div class="section-head"><h2>Seguimiento de casos</h2>${badge("TAR registrado")}</div>${tabla(db.pacientes)}</section><section class="card"><p class="eyebrow">FARMACIA → INFECCIOSAS</p><h2>Continuidad, paso a paso</h2><p class="muted">1. Revisar cobertura y contexto<br>2. Registrar la experiencia y actuación<br>3. Generar un informe fijo<br>4. Simular recepción y resolución</p><div class="notice">Ningún informe se envía. Cada cambio de estado queda registrado.</div><div class="actions"><a href="#comunicaciones">Ver comunicaciones →</a></div></section></div>`;
 }
 function visitas(p) {
   return (
@@ -294,11 +295,11 @@ function caso(p) {
       .reverse()
       .map(
         (e) =>
-          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", estado_actuacion: "Actuación realizada", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.texto || "")}</p><small>Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "importacion" ? `<p>${e.filas.length} filas aceptadas · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
+          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", estado_actuacion: "Actuación realizada", evaluacion_adherencia: "Valoración manual de adherencia", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.resultado || e.texto || "")}</p><small>Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "importacion" ? `<p>${e.filas.length} filas aceptadas · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
       )
       .join("")}</section>`;
   if (tab === "adherencia")
-    html += `<section class="card"><div class="section-head"><h2>Cobertura del TAR oral completo</h2>${boton("csv", "Importar CSV")}</div><p class="muted">Ventana ${reglas.ventana} días; final excluido. Arrastre dentro del mismo episodio y componente, sin traslado entre TAR. En pautas multicomponente deben coincidir todos los componentes.</p><p><strong>${pct(c)}</strong> · ${c.cubiertos} días cubiertos / ${c.total} días evaluables</p><div class="table-wrap"><table><thead><tr><th>Episodio</th><th>Intervalo [inicio, fin)</th><th>Días cubiertos</th></tr></thead><tbody>${c.detalle.map((d) => `<tr><td>${esc(d.tar)}<br><small>${d.episodio}</small></td><td>${d.inicio} → ${d.fin_exclusivo}</td><td>${d.cubiertos}/${d.total}</td></tr>`).join("")}</tbody></table></div><div class="actions">${boton("plantilla", "Descargar CSV de ejemplo")}</div><p class="muted">Los episodios CIMA usan componentes CIMA-número de registro. Las etiquetas A, B, C y D se conservan en los ejemplos iniciales; los días se declaran expresamente. No se calcula dosis ni equivalencia terapéutica.</p></section>`;
+    html += `<section class="card"><div class="section-head"><h2>Cobertura del TAR oral completo</h2>${boton("dispensacion-manual", "Registrar dispensación manual")}${boton("csv", "Importar CSV")}</div><p class="muted">Ventana ${reglas.ventana} días; final excluido. Arrastre dentro del mismo episodio y componente, sin traslado entre TAR. En pautas multicomponente deben coincidir todos los componentes.</p><p><strong>${pct(c)}</strong> · ${c.cubiertos} días cubiertos / ${c.total} días evaluables</p><div class="table-wrap"><table><thead><tr><th>Episodio</th><th>Intervalo [inicio, fin)</th><th>Días cubiertos</th></tr></thead><tbody>${c.detalle.map((d) => `<tr><td>${esc(d.tar)}<br><small>${d.episodio}</small></td><td>${d.inicio} → ${d.fin_exclusivo}</td><td>${d.cubiertos}/${d.total}</td></tr>`).join("")}</tbody></table></div><div class="actions">${boton("plantilla", "Descargar CSV de ejemplo")}</div><p class="muted">Los episodios CIMA usan componentes CIMA-número de registro. Las etiquetas A, B, C y D se conservan en los ejemplos iniciales; los días se declaran expresamente. No se calcula dosis ni equivalencia terapéutica.</p></section>`;
   if (tab === "experiencia")
     html += `<section class="card"><div class="section-head"><h2>Escuchar y registrar</h2>${boton("visita", "Añadir visita")}</div><p class="muted">Opciones cerradas para demostración. No son un cuestionario ni una escala validados.</p>${visitas(p)}</section>`;
   if (tab === "intervenciones")
@@ -315,10 +316,13 @@ function caso(p) {
     html +=
       `<div class="actions">${boton("informe", "Generar informe simulado")}${boton("hoja-paciente", "Crear hoja para el paciente")}</div>` +
       listadoInformes([p]);
+  if (["resumen", "adherencia", "experiencia"].includes(tab)) html += vistaEvaluacionesManuales(p, fin);
+  if (c.excluidos.length) html = `<div class="notice warning"><strong>TAR intramuscular registrado: PDC oral no aplicable a esos periodos.</strong><p>Se conservan los medicamentos, pero no se calculan ventanas de administración ni cobertura inyectable. El PDC mostrado, si existe, corresponde únicamente a periodos orales evaluables.</p></div>` + html;
+  if (tab === "resumen") html += `<div class="actions">${boton("dispensacion-manual", "Registrar dispensación manual")}</div>`;
   return html;
 }
 function modelo() {
-  return `<section class="card"><h2>Modelo CMO-MAPEX</h2><p class="intro">Capacidad, Motivación y Oportunidad: la tecnología apoya la continuidad de la atención, y la valoración corresponde al profesional.</p><h3>Reglas de demostración · ${esc(reglas.version)}</h3><p>Ventana: ${reglas.ventana} días · Parámetro de señal: ${Math.round(reglas.umbral * 100)} %</p><p class="muted">Proceden de reglas v0.2.0 del preparador: pendientes de validación. La cobertura usa inicio de tratamiento explícito y unión por componente con intersección del TAR completo. No estima ingesta, supresión virológica ni riesgo clínico. No incluye TAR inyectable, hospitalizaciones ni dispensación externa.</p>${boton("reglas", "Configurar parámetros de demostración")}<h3>Privacidad y almacenamiento</h3><p class="muted">Sin campos de nombres, documentos o contactos. Las instrucciones de la hoja del paciente son texto local y deben ser exclusivamente sintéticas. Los casos se generan con prefijo DEMO. Los datos se guardan en este navegador; no hay envío de casos, analítica, backend clínico o API generativa. Solo las búsquedas explícitas de medicamentos consultan CIMA (AEMPS), sin datos del caso. El almacenamiento local no ofrece las garantías de un sistema sanitario.</p><h3>Fuentes y autoría</h3><p class="muted">Autor: Dr. Ramón Morillo Verdugo. Adaptaciones CMO: Sociedad Española de Farmacia Hospitalaria (SEFH). Biblioteca y guion conservan sus metadatos originales. No se declara validación clínica ni licencia de terceros no otorgada.</p><div class="actions">${boton("exportar", "Exportar demostración JSON")}</div></section>`;
+  return `<section class="card"><h2>Modelo CMO</h2><p class="intro">Capacidad, Motivación y Oportunidad: la tecnología apoya la continuidad de la atención, y la valoración corresponde al profesional.</p><h3>Reglas de demostración · ${esc(reglas.version)}</h3><p>Ventana: ${reglas.ventana} días · Parámetro de señal: ${Math.round(reglas.umbral * 100)} %</p><p class="muted">Proceden de reglas v0.2.0 del preparador: pendientes de validación. La cobertura usa inicio de tratamiento explícito y unión por componente con intersección del TAR completo. No estima ingesta, supresión virológica ni riesgo clínico. El TAR intramuscular solo se registra como catálogo: se excluye del PDC oral y no se calculan ventanas ni administraciones. No incluye hospitalizaciones ni dispensación externa.</p>${boton("reglas", "Configurar parámetros de demostración")}<h3>Privacidad y almacenamiento</h3><p class="muted">Sin campos de nombres, documentos o contactos. Las instrucciones de la hoja del paciente son texto local y deben ser exclusivamente sintéticas. Los casos se generan con prefijo DEMO. Los datos se guardan en este navegador; no hay envío de casos, analítica, backend clínico o API generativa. Solo las búsquedas explícitas de medicamentos consultan CIMA (AEMPS), sin datos del caso. El almacenamiento local no ofrece las garantías de un sistema sanitario.</p><h3>Fuentes y autoría</h3><p class="muted">Autor: Dr. Ramón Morillo Verdugo. Adaptaciones CMO: Sociedad Española de Farmacia Hospitalaria (SEFH). Biblioteca y guion conservan sus metadatos originales. No se declara validación clínica ni licencia de terceros no otorgada.</p><div class="actions">${boton("exportar", "Exportar demostración JSON")}</div></section>`;
 }
 function render() {
   const route = location.hash.slice(1) || "inicio";
@@ -354,7 +358,7 @@ function render() {
       title = "Monitorización poblacional";
       html = nav + vistaPoblacional(db.pacientes, fin, reglas);
     } else if (route === "panel/cohorte") {
-      title = "Cohorte de TAR oral";
+      title = "Cohorte de TAR";
       html = nav + vistaCohorte(db.pacientes, fin, reglas);
     } else if (["paciente", "cmo"].includes(vista) && p && route.split("/").length === 3) {
       title = (vista === "cmo" ? "Intervención CMO · " : "Ficha longitudinal · ") + p.id;
@@ -461,6 +465,8 @@ document.addEventListener("click", async (ev) => {
       tab = "resumen";
       location.hash = "caso/" + id;
     }
+    if (a === "dispensacion-manual") abrirDispensacionManual({ p, fin, modal, guardar: add });
+    if (a === "evaluacion-manual") abrirEvaluacionManual({ fin, modal, guardar: add });
     if (a === "tar") abrirSeleccionTar({ fin, modal, guardar: add });
     if (a === "nivel")
       modal(
@@ -529,7 +535,7 @@ document.addEventListener("click", async (ev) => {
       );
     if (a === "plantilla") {
       const ep = episodios(p).at(-1);
-      if (!ep) throw Error("Registre primero un TAR");
+      if (!ep || ep.modalidad === "inyectable") throw Error("La plantilla CSV de días de suministro requiere un TAR oral.");
       descargar(
         "fecha;episodio;componente;dias\n" +
           componentes(ep)
@@ -670,7 +676,7 @@ document.addEventListener("change", async (ev) => {
 });
 window.addEventListener("hashchange", () => {
   if (location.hash.startsWith("#panel/cmo/")) tab = "intervenciones";
-  else if (location.hash.startsWith("#panel/paciente/")) tab = "resumen";
+  else if (location.hash.startsWith("#panel/paciente/") || location.hash.startsWith("#caso/")) tab = "resumen";
   $("mensaje").textContent = "";
   $("mensaje").className = "";
   render();

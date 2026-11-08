@@ -15,11 +15,14 @@ export function urlAemps(url) {
   }
 }
 // Filtro de catálogo, no validación de indicación, dosis, interacciones ni TAR completo.
-export function esTarOral(m) {
-  return (
-    m.oral === true &&
-    m.atc.some((c) => /^(J05A(E|F|G|J|R)|J05AX(08|09|12|29)$)/.test(c))
-  );
+const atcTar = m => Array.isArray(m.atc) && m.atc.some(c => /^(J05A(E|F|G|J|R)|J05AX(08|09|12|29)$)/.test(c));
+export function esTarOral(m) { return m.oral === true && atcTar(m); }
+export function esTarInyectable(m) { return m.intramuscular === true && atcTar(m); }
+export function modalidadTar(ms) {
+  if (!Array.isArray(ms) || !ms.length) throw Error("Añada al menos un medicamento.");
+  if (ms.every(esTarOral)) return "oral";
+  if (ms.every(esTarInyectable)) return "inyectable";
+  throw Error("No mezcle vías orales e intramusculares en un episodio. Registre por separado las fases del tratamiento y revise las vías en CIMA.");
 }
 export function normalizarFicha(m, consultado = new Date().toISOString()) {
   if (!/^\d{4,15}$/.test(String(m.nregistro)) || !m.nombre)
@@ -37,6 +40,7 @@ export function normalizarFicha(m, consultado = new Date().toISOString()) {
     atc: (m.atcs || []).map((a) => texto(a.codigo)),
     vias,
     oral: vias.some((v) => /oral/i.test(v) && !/parenteral|bucal/i.test(v)),
+    intramuscular: vias.some(v => /intramuscular/i.test(v)),
     ficha:
       urlAemps(docs.find((d) => Number(d.tipo) === 1)?.url) ||
       enlaceCima(m.nregistro),
@@ -96,7 +100,7 @@ export async function buscar(textoBusqueda, fetcher = fetch) {
     parcial: resultados.some((r) => r.status === "rejected"),
   };
 }
-export async function ficha(nregistro, fetcher = fetch) {
+export async function ficha(nregistro, fetcher = fetch, { permitirInyectable = false } = {}) {
   if (!/^\d{4,15}$/.test(String(nregistro)))
     throw Error("Registro CIMA no válido");
   const m = normalizarFicha(
@@ -107,13 +111,14 @@ export async function ficha(nregistro, fetcher = fetch) {
   );
   if (m.nregistro !== String(nregistro))
     throw Error("La ficha recibida no corresponde al registro seleccionado.");
-  if (!esTarOral(m))
+  if (!esTarOral(m) && !(permitirInyectable && esTarInyectable(m)))
     throw Error(
-      "La ficha no permite confirmar un antirretroviral oral con el filtro de catálogo. Revise la vía y ATC en CIMA. No se ha añadido.",
+      "La ficha no permite confirmar un antirretroviral con las vías admitidas y el filtro de catálogo. Revise la vía y ATC en CIMA. No se ha añadido.",
     );
   return m;
 }
-export function validarMedicamentos(ms) {
+export function validarMedicamentos(ms, modalidad = "oral") {
+  if (!["oral", "inyectable"].includes(modalidad)) throw Error("Modalidad de TAR no válida.");
   if (!Array.isArray(ms) || !ms.length || ms.length > 8)
     throw Error(
       "Seleccione entre 1 y 8 medicamentos de CIMA para el TAR completo.",
@@ -124,7 +129,7 @@ export function validarMedicamentos(ms) {
       !/^\d{4,15}$/.test(m.nregistro) ||
       !m.nombre ||
       !Array.isArray(m.atc) ||
-      !esTarOral(m) ||
+      !(modalidad === "oral" ? esTarOral(m) : esTarInyectable(m)) ||
       !Number.isFinite(Date.parse(m.consultado)) ||
       !urlAemps(m.ficha) ||
       !m.cn ||
