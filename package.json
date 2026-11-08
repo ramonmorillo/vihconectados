@@ -1,0 +1,18 @@
+{
+  "name": "vihconectados",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node servidor.mjs",
+    "test": "node --test pruebas/*.test.mjs",
+    "check": "node --check src/motor.js && node --check src/app.js && node --check src/almacen.js && node --check src/informes.js",
+    "test:browser": "node pruebas/navegador.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "playwright": "1.65.0"
+  }
+}

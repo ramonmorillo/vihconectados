@@ -1,0 +1,27 @@
+# Limitaciones y requisitos para un futuro piloto clínico
+
+Estado 0.1.0, 08/11/2026. Material de demostración con datos sintéticos. Autor: Dr. Ramón Morillo Verdugo.
+
+## Límites actuales
+
+No hay evidencia de validación clínica del algoritmo ni de sus reglas. Ni las pruebas unitarias ni la paridad con otra calculadora constituyen validación clínica. Umbral/ventana son parámetros demostrativos heredados. Las dificultades referidas disparan revisión, no diagnóstico de reacción adversa o falta de adherencia. No se asigna automáticamente el nivel CMO ni se modifica tratamiento.
+
+Solo se admite TAR oral con un episodio activo. La pauta ficticia representa un conjunto completo de componentes, sin equivalencias ni dosis reales. No modela TAR de acción prolongada, ingresos, interrupciones, fallecimiento, pérdidas de medicación, cambios parcialmente superpuestos, recetas externas o stock inicial. Nuevos datos pueden modificar la evaluación actual; los informes fijados permanecen independientes. Correcciones de lotes requerirán eventos de anulación y sustitución auditados en una fase posterior; ahora se rechazan conflictos sin sobrescribir.
+
+La biblioteca declara acumulación por nivel y discrepancia pendiente con la herramienta original. No se han comprobado las anclas contra el PDF SEFH. No se reproduce una escala PAM ni se calcula una puntuación protegida o no autorizada.
+
+El almacenamiento local y la validación del navegador pueden ser alterados por un usuario con acceso al equipo. Los eventos anexados protegen de edición accidental por la interfaz, no de manipulación deliberada. No existen firma, registro inmutable institucional, control de acceso, cifrado de datos de aplicación, copia de seguridad o bloqueo de sesiones. El servidor de desarrollo expone archivos estáticos; no debe usarse como servicio clínico en producción. El JSON es un formato técnico propio, no un documento FHIR validado. La comunicación es exclusivamente una máquina de estados local: no demuestra entrega ni lectura por un destinatario.
+
+## Condiciones previas al piloto
+
+1. Definir finalidad de uso, responsable clínico, población, exclusiones y circuito asistencial con Farmacia e Infecciosas. Revisar clasificación regulatoria, necesidad de evaluación ética y requisitos aplicables con responsables institucionales.
+2. Aprobar clínicamente denominador, ventana, umbrales por pauta, arrastres, cambios de TAR, interrupciones, componentes, fuentes externas y tratamiento de datos ausentes. Documentar versión, justificación y proceso de cambio. Estudio de sensibilidad y falsos positivos/negativos; protocolo de validación con referencia profesional independiente.
+3. Contrastar guion y catálogo con documentos originales y obtener permisos necesarios de uso/redistribución. Resolver catálogo acumulativo/nivel propio. Definir instrumentos de experiencia del paciente autorizados y, si procede, validados.
+4. Evaluación de impacto de protección de datos, base jurídica, minimización, retención, gestión de derechos, roles y accesos institucionales. Separar entornos y datos de pruebas. Impedir datos reales hasta autorización expresa del centro.
+5. Backend institucional con SSO, RBAC, autorización por caso y operación, TLS, almacenamiento y copias cifrados, auditoría protegida, trazabilidad de actor/fecha, concurrencia, idempotencia, validación de esquemas, migraciones y recuperación probada. No reutilizar localStorage para historias clínicas.
+6. Contratos de interoperabilidad autorizados: identidad institucional, Patient/MedicationRequest/MedicationDispense/CarePlan/Communication según perfiles acordados, terminologías versionadas, conciliación y procedencia. No equiparar un cambio manual de estado con un acuse real.
+7. Seguridad: modelo de amenazas, revisión de dependencias, pruebas de autorización, XSS/CSRF e importación, pruebas de carga y accesibilidad formal. La CSP y el escape del MVP solo cubren una parte.
+8. Protocolo de respuesta a señales, tiempos y responsables, escalado, comunicación, revisión profesional registrada y cierre. Evitar fatiga de alertas. Pruebas de usabilidad con profesionales y pacientes, accesibilidad WCAG 2.2 AA y evaluación de comprensión.
+9. Definir métricas, seguimiento de incidentes, monitorización, soporte, control de versiones y criterios de pausa del piloto. Comparar cobertura con fuentes y resultados apropiados sin inferir causalidad ni adherencia efectiva a partir de dispensaciones.
+
+Ninguna de estas condiciones se declara cumplida por esta entrega. No hay conexión a datos clínicos reales ni autorización para su uso en pacientes.
