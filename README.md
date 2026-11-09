@@ -4,6 +4,12 @@ Plataforma de demostración para el seguimiento longitudinal de la cobertura del
 
 **Autor: Dr. Ramón Morillo Verdugo.** Solo datos sintéticos. Apoyo a revisión profesional; no es un producto clínicamente validado ni un sistema de prescripción. No introducir datos reales. No contiene formularios de identificación, publicación de datos ni envío de comunicaciones.
 
+## Manual de uso
+
+[Descargar o leer el manual completo en PDF](docs/manual-uso.pdf) · [Consultar la versión editable](docs/MANUAL_USO.md). Incluye navegación, conceptos, CIMA, dispensaciones, conciliación, correcciones, adherencia, consulta guiada, seguimiento, informes, recorridos por perfil y problemas frecuentes. Disponible también desde la portada y el menú de la aplicación.
+
+Para regenerar el PDF desde el Markdown: `python3 scripts/generar-manual.py` (requiere Python con ReportLab y fuentes DejaVu; solo para edición documental, sin dependencias nuevas de ejecución de la aplicación).
+
 ## Ejecutar
 
 Requiere Node.js 22 o superior. La aplicación no necesita paquetes externos para ejecutarse:

@@ -7,6 +7,7 @@ const tipos = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
+  ".pdf": "application/pdf",
 };
 http
   .createServer(async (req, res) => {
@@ -22,7 +23,7 @@ http
           ? "index.html"
           : decodeURIComponent(url.pathname).slice(1);
       if (
-        !/^(index\.html|src\/[a-z-]+\.(js|css)|datos\/[a-z-]+\.json)$/.test(rel)
+        !/^(index\.html|src\/[a-z-]+\.(js|css)|datos\/[a-z-]+\.json|docs\/manual-uso\.pdf)$/.test(rel)
       ) {
         res.writeHead(404);
         res.end();
