@@ -46,10 +46,19 @@ try {
  await manual('20');
  p=(await db()).pacientes[3];const count=p.eventos.length;
  assert.equal(p.eventos.at(-1).fuente,'Entrada manual');assert.equal(p.eventos.at(-1).filas.length,2);
- await manual('20');assert.equal((await db()).pacientes[3].eventos.length,count);
- await page.getByRole('status').filter({hasText:'no se han añadido duplicados'}).waitFor();
- await manual('21');await page.locator('#errorForm').filter({hasText:'conflicto'}).waitFor();
- assert.equal((await db()).pacientes[3].eventos.length,count);await cerrar();
+ await manual('20');
+ await page.locator('#errorForm').filter({hasText:'coincidencias pendientes'}).waitFor();
+ assert.equal((await db()).pacientes[3].eventos.length,count);
+ for (const linea of [2,3]) {
+  const sel=page.locator(`select[name=decision_${linea}]`);
+  await sel.selectOption(await sel.locator('option').nth(2).getAttribute('value'));
+  await page.locator(`input[name=motivo_${linea}]`).fill('Misma entrega sintética, comprobada');
+ }
+ await save();
+ await page.getByRole('status').filter({hasText:'2 duplicadas omitidas'}).waitFor();
+ assert.equal((await db()).pacientes[3].eventos.length,count+1);
+ await manual('21');await page.locator('#errorForm').filter({hasText:'coincidencias pendientes'}).waitFor();
+ assert.equal((await db()).pacientes[3].eventos.length,count+1);await cerrar();
  await page.getByRole('button',{name:'Registrar valoración manual',exact:true}).click();
  await page.locator('input[name=periodo_inicio]').fill('2026-10-01');
  await page.locator('input[name=periodo_fin]').fill('2026-11-01');

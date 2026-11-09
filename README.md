@@ -49,7 +49,7 @@ fecha;episodio;componente;dias
 2026-05-01;UUID_DEL_EPISODIO;A;30
 ```
 
-Obtenga el UUID y componentes válidos mediante **Descargar CSV de ejemplo** en el caso. Las fechas son ISO, días enteros entre 1 y 400. Es un esquema deliberadamente limitado: no admite comillas, columnas libres ni separadores dentro de campos. Hasta 100 KB y 1000 filas. La clave de deduplicación es fecha + episodio + componente; diferente cantidad con esa clave bloquea el lote completo. Las filas idénticas se omiten, conservando sus números de línea. No se almacena el CSV original; sí sus filas normalizadas, hash SHA-256, UUID de lote y fecha de registro. El hash permite comparar archivos y no es una firma de autenticidad.
+Obtenga el UUID y componentes válidos mediante **Descargar CSV de ejemplo** en el caso. Las fechas son ISO, días enteros entre 1 y 400. Es un esquema deliberadamente limitado: no admite comillas, columnas libres ni separadores dentro de campos. Hasta 100 KB y 1000 filas. La clave de deduplicación es fecha + episodio + componente; diferente cantidad con esa clave bloquea el lote completo. Con identidad de origen o reimportación inequívoca, las filas idénticas no se duplican. Si solo coincide fecha/episodio/componente, los formularios solicitan conciliación explícita y motivo antes de guardar. No se almacena el CSV original; sí sus filas normalizadas, hash SHA-256, UUID de lote y fecha de registro. El hash permite comparar archivos y no es una firma de autenticidad.
 
 ## Cálculo y límites
 
@@ -161,3 +161,13 @@ En **Resumen** o **Cobertura TAR**, use **Registrar dispensación manual**: elij
 **Registrar valoración manual**, en Resumen, Cobertura TAR o Experiencia, guarda fecha de evaluación, periodo [inicio, fin), método, resultado referido y porcentaje opcional 0–100. El porcentaje no se deduce de la entrevista, no aplica puntos de corte y no modifica el PDC. Cada valoración se anexa al histórico. La cohorte y los informes profesionales muestran la valoración más reciente aplicable a la fecha de corte; los informes anteriores permanecen congelados. También puede registrarse en casos con TAR intramuscular, sin afirmar que se ha administrado una inyección.
 
 Validación adicional: `pruebas/registro-manual.test.mjs` y `pruebas/registro-manual.mjs`. El recorrido de navegador prueba dos medicamentos orales y dos intramusculares con fichas CIMA sintéticas interceptadas, registro manual, duplicados/conflictos, persistencia, informes y móvil. No verifica el catálogo real ni valida clínicamente las combinaciones. No se añaden dependencias ni se requiere migración destructiva del almacenamiento.
+
+## Confianza en datos y gestión de señales
+
+Las vistas aplican el corte a tratamiento, nivel, visitas, valoraciones, actuaciones y comunicaciones. Los hechos incluyen el día de corte; el cálculo de cobertura lo excluye. Si un dato antiguo carece de fecha efectiva, se indica y se usa su fecha de registro como referencia, sin reconstruir una fecha clínica inexistente.
+
+En **Cobertura TAR → Dispensaciones y correcciones**, **Corregir / anular** conserva el original y añade motivo y sustitución opcional. Se recalculan las vistas actuales, no los informes guardados. La entrada manual y CSV concilian las coincidencias ambiguas antes de guardar; el CSV opcional de seis columnas incorpora `origen;id_origen` para distinguir entregas legítimas del mismo día.
+
+En **Resumen → Gestionar: regla**, registre revisión, justificación, actuación vinculada o cierre con motivo. La condición calculada permanece separada de su gestión. Los datos efectivos, reglas o intervalo nuevos requieren revisión nueva; volver a dibujar la pantalla no reabre señales. Los avisos metodológicos se separan de los pendientes asistenciales/de calidad de datos en contadores y filtros.
+
+Véase `docs/CONFIANZA_DATOS.md` para las decisiones temporales, compatibilidad, límites de reconstrucción, pruebas y recorrido de revisión. No se cambian umbrales ni se añaden servicios o dependencias.

@@ -1,24 +1,28 @@
-import { episodios, componentes, nombreTar, prepararDispensacionManual } from './motor.js';
+import { crearGuardadoConciliado } from "./revision-datos.js";
+import { episodios, componentes, nombreTar, prepararDispensacionManual, validarDispensacion } from './motor.js';
 import { esc } from './vista-informes.js';
 import { METODOS_ADHERENCIA, RESULTADOS_ADHERENCIA, evaluacionesAdherencia, textoEvaluacionAdherencia } from './adherencia.js';
 export function abrirDispensacionManual({ p, fin, modal, guardar }) {
   const eps = episodios(p).filter(ep => ep.modalidad !== 'inyectable');
   if (!eps.length) throw Error('Registre primero un episodio de TAR oral. No se calculan días de suministro de inyectables.');
   const defecto = eps.filter(e=>e.fecha<=fin).at(-1) || eps.at(-1);
-  modal('Registrar dispensación manual', `<p class="notice">Días de suministro declarados, no dosis ni tomas. Use solo datos sintéticos. Se aplica la misma validación y detección de duplicados que al CSV.</p><label>Episodio de TAR oral<select name="episodio" id="episodioManual">${eps.map(ep=>`<option value="${esc(ep.id)}" ${ep.id===defecto.id?'selected':''}>${esc(ep.fecha)} · ${esc(nombreTar(ep))}</option>`).join('')}</select></label><label>Fecha de dispensación<input name="fecha" type="date" value="${fin}" required></label><div id="suministrosManuales"></div><p class="muted">Indique los días de los medicamentos dispensados y deje en blanco los restantes. No se deducen días del envase. En combinaciones orales, el PDC exige cobertura simultánea de todos los componentes.</p>`, v=>{
+  const guardarPlan=crearGuardadoConciliado(p,guardar);
+  modal('Registrar dispensación manual', `<p class="notice">Días de suministro declarados, no dosis ni tomas. Use solo datos sintéticos. Se aplica la misma validación y detección de duplicados que al CSV.</p><label>Episodio de TAR oral<select name="episodio" id="episodioManual">${eps.map(ep=>`<option value="${esc(ep.id)}" ${ep.id===defecto.id?'selected':''}>${esc(ep.fecha)} · ${esc(nombreTar(ep))}</option>`).join('')}</select></label><label>Fecha de dispensación<input name="fecha" type="date" value="${fin}" required></label><label>Origen (opcional, solo si hay identificadores)<input name="origen" maxlength="80" placeholder="SISTEMA-DEMO"></label><div id="suministrosManuales"></div><div id="conciliacionDispensaciones"></div><p class="muted">Indique los días de los medicamentos dispensados y deje en blanco los restantes. No se deducen días del envase. En combinaciones orales, el PDC exige cobertura simultánea de todos los componentes.</p>`, v=>{
     const ep=eps.find(e=>e.id===v.episodio);
-    const suministros=componentes(ep).map((componente,i)=>({componente,dias:v['dias'+i] === '' ? null : Number(v['dias'+i])})).filter(f=>f.dias!==null);
-    const r=prepararDispensacionManual(p,{fecha:v.fecha,episodio:v.episodio,suministros});
-    if (!r.filas.length) return 'La dispensación ya estaba registrada; no se han añadido duplicados.';
-    guardar({tipo:'importacion',fuente:'Entrada manual',...r});
-    return `${r.filas.length} dispensaciones incorporadas manualmente; ${r.duplicadas.length} duplicadas omitidas.`;
+    const entradas=componentes(ep).map((componente,i)=>({fecha:v.fecha,episodio:v.episodio,componente,linea:i+2,dias:v['dias'+i] === '' ? null : Number(v['dias'+i]),...(v['id_origen'+i] || v.origen?{origen:v.origen,id_origen:v['id_origen'+i]}:{})})).filter(f=>f.dias!==null);
+    if (!entradas.length) throw Error('Indique días para al menos un medicamento.');
+    entradas.forEach(f=>validarDispensacion(p,f));
+    return guardarPlan(entradas,v);
   });
   const selector=document.getElementById('episodioManual');
   const dibujar=()=>{
     const ep=eps.find(e=>e.id===selector.value);
-    document.getElementById('suministrosManuales').innerHTML=componentes(ep).map((c,i)=>`<label>Días de suministro · ${esc(ep.medicamentos?.[i]?.nombre || c)}<input name="dias${i}" type="number" min="1" max="400" step="1" inputmode="numeric" aria-label="Días de suministro ${esc(c)}"></label>`).join('');
+    document.getElementById('suministrosManuales').innerHTML=componentes(ep).map((c,i)=>`<label>Días de suministro · ${esc(ep.medicamentos?.[i]?.nombre || c)}<input name="dias${i}" type="number" min="1" max="400" step="1" inputmode="numeric" aria-label="Días de suministro ${esc(c)}"></label><label>Identificador de origen · ${esc(c)} (opcional)<input name="id_origen${i}" maxlength="80" placeholder="DISP-DEMO-001"></label>`).join('');
   };
-  selector.onchange=dibujar; dibujar();
+  selector.onchange=()=>{dibujar();document.getElementById('conciliacionDispensaciones').innerHTML='';}; dibujar();
+  document.getElementById('formulario').querySelector('form').addEventListener('input',ev=>{
+    if (/^(fecha|origen|dias\d+|id_origen\d+)$/.test(ev.target.name || '')) document.getElementById('conciliacionDispensaciones').innerHTML='';
+  });
 }
 export function abrirEvaluacionManual({fin,modal,guardar}) {
   const opciones=arr=>arr.map(s=>`<option>${esc(s)}</option>`).join('');

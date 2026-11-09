@@ -1,0 +1,78 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import {crearPaciente,vacio,anexar} from '../src/almacen.js';
+import {informe} from '../src/informes.js';
+import {EXPERIENCIA} from '../src/motor.js';
+let d=crearPaciente(vacio(),'2','2026-01-01');
+const add=e=>d=anexar(d,'DEMO-001',e);
+add({tipo:'tratamiento',tar:'TAR_A',fecha:'2026-01-01'});const ep=d.pacientes[0].eventos.at(-1).id;
+add({tipo:'importacion',fuente:'Fixture sintético',filas:[{fecha:'2026-01-01',episodio:ep,componente:'A',dias:10,origen:'DEMO',id_origen:'DISP-1'}],duplicadas:[]});
+add({tipo:'tratamiento',tar:'TAR_B',fecha:'2026-03-01'});
+add({tipo:'nivel',nivel:'1',fecha:'2026-03-01'});
+const experiencia=Object.fromEntries(Object.entries(EXPERIENCIA).map(([k,v])=>[k,v[0]]));
+add({tipo:'visita',fecha:'2026-01-20',experiencia:{...experiencia,barrera:'Privacidad'}});
+add({tipo:'visita',fecha:'2026-03-01',experiencia:{...experiencia,barrera:'Olvidos'}});
+add({tipo:'actuacion',fecha:'2026-01-20',texto:'Actuación sintética de revisión',estado:'pendiente'});
+const act=d.pacientes[0].eventos.at(-1).id;
+add({tipo:'estado_actuacion',fecha:'2026-03-01',actuacion:act,estado:'realizada'});
+add(informe(d.pacientes[0],'2026-01-31'));const snapshot=JSON.stringify(d.pacientes[0].eventos.at(-1));
+const reportId=d.pacientes[0].eventos.at(-1).id;
+add({tipo:'estado_comunicacion',fecha:'2026-03-01',informe:reportId,estado:'comunicado'});
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+try {
+ const page=await browser.newPage({locale:'es-ES',viewport:{width:1440,height:1000}}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error') errors.push(m.text());});
+ await page.addInitScript(data=>{if(!localStorage.getItem('vihconectados.demo.v1'))localStorage.setItem('vihconectados.demo.v1',JSON.stringify(data));},d);
+ const save=()=>page.getByRole('button',{name:'Guardar registro',exact:true}).click();
+ const close=()=>page.getByRole('button',{name:'Cerrar',exact:true}).click();
+ const db=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('vihconectados.demo.v1')));
+ const corte=async()=>{await page.locator('#corte').fill('2026-01-31');await page.locator('#corte').dispatchEvent('change');};
+ await page.goto('http://127.0.0.1:5173/#panel/paciente/DEMO-001');await page.locator('#corte').waitFor();await corte();
+ const situacion=page.locator('section').filter({has:page.getByRole('heading',{name:'Situación del caso',exact:true})});
+ assert.match(await situacion.textContent(),/TAR_A/);assert.doesNotMatch(await situacion.textContent(),/TAR_B/);
+ assert.match(await situacion.textContent(),/CMO 2/);
+ const experienciaActual=page.locator('section').filter({has:page.getByRole('heading',{name:'Última experiencia registrada',exact:true})});
+ assert.match(await experienciaActual.textContent(),/Privacidad/);assert.doesNotMatch(await experienciaActual.textContent(),/Olvidos/);
+ await page.getByRole('button',{name:'Gestionar: cobertura_demo',exact:true}).click();
+ await page.locator('select[name=estado]').selectOption('cerrada');await page.locator('input[name=motivo]').fill('Caso sintético revisado; cierre de gestión');await save();
+ await page.reload();await page.locator('#corte').waitFor();await corte();
+ assert.match(await situacion.textContent(),/Gestión: cerrada/);
+ await page.getByRole('button',{name:'Cobertura TAR',exact:true}).click();
+ await page.getByRole('button',{name:'Registrar dispensación manual',exact:true}).click();
+ await page.locator('input[name=fecha]').fill('2026-01-01');await page.locator('input[name=dias0]').fill('5');await save();
+ await page.locator('#errorForm').filter({hasText:'coincidencias pendientes'}).waitFor();
+ const antes=(await db()).pacientes[0].eventos.length;
+ await page.locator('select[name=decision_2]').selectOption('nueva');await page.locator('input[name=motivo_2]').fill('Segunda entrega independiente del mismo día');await save();
+ assert.equal((await db()).pacientes[0].eventos.length,antes+1);
+ await page.getByRole('button',{name:'Resumen',exact:true}).click();assert.match(await situacion.textContent(),/Evidencias cambiadas/);
+ await page.getByRole('button',{name:'Cobertura TAR',exact:true}).click();
+ let ref=(await db()).pacientes[0].eventos.find(e=>e.tipo==='importacion').id+':0';
+ await page.locator(`button[data-action="corregir-dispensacion"][data-id="${ref}"]`).click();
+ await page.locator('input[name=dias]').fill('20');await page.locator('input[name=motivo]').fill('Corrección sintética de días');await save();
+ await page.locator('#errorForm').filter({hasText:'independientes'}).waitFor();
+ await page.locator('input[name=coincidencia_confirmada]').check();await save();
+ const historial=page.locator('#registroDispensaciones');assert.match(await historial.textContent(),/sustituida/);assert.match(await historial.textContent(),/20/);
+ const nuevaRef=(await db()).pacientes[0].eventos.at(-1).id+':0';
+ await page.locator(`button[data-action="corregir-dispensacion"][data-id="${nuevaRef}"]`).click();
+ await page.locator('select[name=operacion]').selectOption('anular');await page.locator('input[name=motivo]').fill('Anulación sintética');await save();
+ assert.match(await historial.textContent(),/anulada/);
+ const csv=`fecha;episodio;componente;dias;origen;id_origen\n2026-01-22;${ep};A;2;DEMO;DISP-2\n2026-01-22;${ep};A;2;DEMO;DISP-3`;
+ for(let i=0;i<2;i++){
+  await page.getByRole('button',{name:'Importar CSV',exact:true}).click();await page.locator('#csv').fill(csv);await save();
+  await page.locator('#mensaje').filter({hasText:i?'0 filas incorporadas; 2 duplicadas omitidas':'2 filas incorporadas'}).waitFor();
+ }
+ assert.equal(JSON.stringify((await db()).pacientes[0].eventos.find(e=>e.id===reportId)),snapshot);
+ await page.screenshot({path:'/tmp/vih-confianza-dispensaciones.png',fullPage:true});
+ await page.getByRole('button',{name:'Informes',exact:true}).click();
+ await page.getByRole('button',{name:'Ver e imprimir',exact:true}).click();assert.match(await page.locator('.report-preview').textContent(),/10 días cubiertos/);await close();
+ for(const width of [1440,390]){
+  await page.setViewportSize({width,height:900});
+  await page.getByRole('button',{name:'Cobertura TAR',exact:true}).click();
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  const btn=page.getByRole('button',{name:'Corregir / anular',exact:true}).first();await btn.focus();await page.keyboard.press('Enter');
+  await page.locator('#modal[open]').waitFor();await page.keyboard.press('Tab');assert.ok(await page.locator('#modal').evaluate(e=>e.contains(document.activeElement)));await close();
+ }
+ await page.screenshot({path:'/tmp/vih-confianza-mobile.png',fullPage:true});
+ assert.deepEqual(errors,[]);
+ console.log('Confianza: corte histórico, gestión/reapertura, conciliación, corrección/anulación, reimportación, informe congelado, teclado y móvil: OK');
+} finally {await browser.close();}

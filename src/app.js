@@ -1,3 +1,6 @@
+import { abrirCSVConciliado, tablaDispensaciones, abrirCorreccion, abrirGestionSenal } from "./revision-datos.js";
+import { fechaEfectiva, aplicable, eventosHasta, ultimoEvento, tratamientoHasta, nivelHasta } from "./temporal.js";
+import { evaluarSenales, pendientesSenales } from "./senales.js";
 import { abrirDispensacionManual, abrirEvaluacionManual, vistaEvaluacionesManuales } from "./registro-manual.js";
 import { navegacionDesktop, vistaPoblacional, vistaCohorte, conectarCohorte, resumenLongitudinal, itinerarioCMO } from "./desktop.js";
 import {
@@ -75,6 +78,7 @@ const campo = (n, t, html) =>
   `<label>${t}${html || `<input name="${n}" required>`}</label>`;
 const select = (name, arr) =>
   `<select name="${name}">${arr.map((x) => `<option value="${esc(x)}">${esc(x.replaceAll("_", " "))}</option>`).join("")}</select>`;
+const nivelCorte = p => nivelHasta(p, fin) || "Sin dato";
 const paciente = () => db.pacientes.find((p) => p.id === seleccion);
 function guardar(next) {
   repo.guardar(next);
@@ -127,8 +131,8 @@ function tabla(ps) {
     ps
       .map((p) => {
         const c = cobertura(p, fin, reglas),
-          a = alertas(p, fin, reglas);
-        return `<tr><td><strong>${p.id}</strong>${p.escenario ? `<span class="case-profile">${esc(p.escenario.titulo)}</span>` : ""}<br><small class="muted">${esc(nombreTar(episodios(p).at(-1)))}</small></td><td>${badge("Nivel " + nivel(p))}</td><td>${pct(c)}${c.excluidos.length ? '<br><small>PDC oral · periodos intramusculares excluidos</small>' : ''}<div class="bar"><div class="bar-fill" data-pct="${c.pdc === null ? 0 : c.pdc * 100}"></div></div></td><td>${badge(a.length ? a.length + " señales" : "Sin señales", !!a.length)}</td><td>${boton("abrir", "Ver caso", p.id)}</td></tr>`;
+          a = evaluarSenales(p, fin, reglas);
+        return `<tr><td><strong>${p.id}</strong>${p.escenario ? `<span class="case-profile">${esc(p.escenario.titulo)}</span>` : ""}<br><small class="muted">${esc(nombreTar(tratamientoHasta(p,fin)))}</small></td><td>${badge("Nivel " + nivelCorte(p))}</td><td>${pct(c)}${c.excluidos.length ? '<br><small>PDC oral · periodos intramusculares excluidos</small>' : ''}<div class="bar"><div class="bar-fill" data-pct="${c.pdc === null ? 0 : c.pdc * 100}"></div></div></td><td>${badge(a.filter(s=>s.categoria!=="aviso" && s.estado_gestion==="pendiente").length + " pendientes", a.some(s=>s.categoria!=="aviso" && s.estado_gestion==="pendiente"))}</td><td>${boton("abrir", "Ver caso", p.id)}</td></tr>`;
       })
       .join("") ||
     '<tr><td colspan="5">No hay casos. Cree un caso sintético para comenzar.</td></tr>'
@@ -136,15 +140,15 @@ function tabla(ps) {
 }
 function pendiente(p, a) {
   return (
-    a.estado === "pendiente" &&
+    aplicable(a,fin) && a.estado === "pendiente" &&
     !p.eventos.some(
-      (e) => e.tipo === "estado_actuacion" && e.actuacion === a.id,
+      (e) => e.tipo === "estado_actuacion" && e.actuacion === a.id && aplicable(e,fin),
     )
   );
 }
 function panel() {
   const aa = db.pacientes.reduce(
-      (n, p) => n + alertas(p, fin, reglas).length,
+      (n, p) => n + pendientesSenales(p, fin, reglas).length,
       0,
     ),
     ac = db.pacientes.reduce(
@@ -159,7 +163,7 @@ function panel() {
         n +
         p.eventos.filter(
           (e) =>
-            e.tipo === "informe" && estadoComunicacion(p, e.id) !== "resuelto",
+            e.tipo === "informe" && aplicable(e,fin) && estadoComunicacion(p, e.id, fin) !== "resuelto",
         ).length,
       0,
     );
@@ -180,7 +184,7 @@ function panel() {
 function visitas(p) {
   return (
     p.eventos
-      .filter((e) => e.tipo === "visita")
+      .filter((e) => e.tipo === "visita" && aplicable(e,fin))
       .map(
         (v) =>
           `<div class="item"><strong>${v.fecha}</strong><p>${Object.entries(
@@ -197,19 +201,19 @@ function listadoInformes(ps) {
     ps
       .flatMap((p) =>
         p.eventos
-          .filter((e) => ["informe", "informe_paciente"].includes(e.tipo))
+          .filter((e) => ["informe", "informe_paciente"].includes(e.tipo) && aplicable(e,fin))
           .map((i) => {
             const paciente = i.tipo === "informe_paciente",
               estado = paciente
                 ? "Hoja para el paciente"
-                : estadoComunicacion(p, i.id),
-              next = paciente ? null : ESTADOS[ESTADOS.indexOf(estado) + 1];
+                : estadoComunicacion(p, i.id, fin),
+              next = paciente ? null : estado === estadoComunicacion(p,i.id) ? ESTADOS[ESTADOS.indexOf(estado) + 1] : null;
             return `<article class="card"><div class="section-head"><h2>${esc(p.id)} · ${i.fecha}</h2>${badge(estado)}</div><p class="muted">${paciente ? "Instrucciones revisadas · Hoja fija de demostración" : "Informe profesional fijo · circuito de comunicación simulado"}</p><div class="actions">${boton("ver-informe", "Ver e imprimir", p.id + "|" + i.id)}${!paciente ? boton("copiar-informe", "Copiar para historia clínica", p.id + "|" + i.id) : ""}${boton("json-informe", "Descargar JSON", p.id + "|" + i.id)}${next ? boton("estado", "Simular: " + next, p.id + "|" + i.id) : ""}</div>${
               !paciente
                 ? `<details><summary>Trazabilidad de comunicación</summary><p class="muted">${esc(i.registrado)} · pendiente</p>${p.eventos
                     .filter(
                       (e) =>
-                        e.tipo === "estado_comunicacion" && e.informe === i.id,
+                        e.tipo === "estado_comunicacion" && e.informe === i.id && aplicable(e,fin),
                     )
                     .map(
                       (e) =>
@@ -264,7 +268,7 @@ function recursos() {
 }
 function caso(p) {
   const c = cobertura(p, fin, reglas),
-    a = alertas(p, fin, reglas);
+    a = evaluarSenales(p, fin, reglas);
   let html = `<p class="muted"><a href="#pacientes">← Todos los casos</a> / ${p.id} · Solo datos sintéticos</p>${p.escenario ? `<div class="notice cohorte-caption"><strong>${esc(p.escenario.titulo)}</strong><br>${esc(p.escenario.descripcion)}<br><small>Caso ficticio · ${esc(p.escenario.version)}</small></div>` : ""}<div class="tabs" role="group" aria-label="Secciones del caso">${[
     ["resumen", "Resumen"],
     ["historia", "Historia longitudinal"],
@@ -279,23 +283,23 @@ function caso(p) {
     )
     .join("")}</div>`;
   if (tab === "resumen")
-    html += `<div class="grid"><section class="card"><div class="section-head"><h2>Situación del caso</h2>${badge("CMO " + nivel(p))}</div><p>Último TAR registrado: <strong>${esc(nombreTar(episodios(p).at(-1)))}</strong></p>${(episodios(p).at(-1)?.medicamentos || []).map((m) => `<p class="muted"><a href="${enlaceCima(m.nregistro)}" target="_blank" rel="noopener noreferrer">Ficha CIMA ${esc(m.nregistro)} ↗</a> · CN ${esc(m.cn)} · Consulta ${esc(m.consultado.slice(0, 10))}</p>`).join("")}<p>Cobertura hasta ${fin} (excluido): <strong>${pct(c)}</strong> · ${c.cubiertos}/${c.total} días</p><div class="actions">${boton("tar", "Registrar cambio TAR")}${boton("nivel", "Registrar nivel CMO")}${boton("informe", "Generar informe simulado")}${boton("hoja-paciente", "Crear hoja para el paciente")}</div><h3>Señales explicables</h3>${a.map((x) => `<div class="notice warning"><strong>${esc(x.texto)}</strong><br><small>${esc(x.regla)} · ${esc(x.version)} · ${x.estado}</small></div>`).join("") || '<p class="muted">Sin señales bajo la configuración actual. No equivale a ausencia de problemas.</p>'}<div class="actions">${boton("revision", "Registrar revisión profesional simulada")}</div><p class="muted">${p.eventos
-      .filter((e) => e.tipo === "revision_alertas")
+    html += `<div class="grid"><section class="card"><div class="section-head"><h2>Situación del caso</h2>${badge("CMO " + nivelCorte(p))}</div><p>Último TAR registrado: <strong>${esc(nombreTar(tratamientoHasta(p,fin)))}</strong></p>${(tratamientoHasta(p,fin)?.medicamentos || []).map((m) => `<p class="muted"><a href="${enlaceCima(m.nregistro)}" target="_blank" rel="noopener noreferrer">Ficha CIMA ${esc(m.nregistro)} ↗</a> · CN ${esc(m.cn)} · Consulta ${esc(m.consultado.slice(0, 10))}</p>`).join("")}<p>Cobertura hasta ${fin} (excluido): <strong>${pct(c)}</strong> · ${c.cubiertos}/${c.total} días</p><div class="actions">${boton("tar", "Registrar cambio TAR")}${boton("nivel", "Registrar nivel CMO")}${boton("informe", "Generar informe simulado")}${boton("hoja-paciente", "Crear hoja para el paciente")}</div><h3>Señales explicables</h3><p class="muted">${a.filter(s=>s.categoria==="aviso").length} avisos metodológicos, separados de los pendientes asistenciales y de calidad de datos.</p>${a.map((x) => `<div class="notice warning"><strong>${esc(x.texto)}</strong><br><small>${esc(x.regla)} · ${esc(x.version)} · ${esc(x.categoria === "aviso" ? "Aviso metodológico" : x.categoria === "datos" ? "Calidad de datos" : "Señal asistencial")} · Gestión: ${esc(x.estado_gestion)}${x.reabierta ? " · Evidencias cambiadas: revisar de nuevo" : ""}</small>${x.gestion ? `<p>Motivo: ${esc(x.gestion.motivo)}</p>` : ""}${boton("gestionar-senal", "Gestionar: " + x.regla, x.regla)}</div>`).join("") || '<p class="muted">Sin señales bajo la configuración actual. No equivale a ausencia de problemas.</p>'}<div class="actions">${boton("revision", "Registrar revisión profesional simulada")}</div><p class="muted">Revisiones anteriores sin vínculo individual de señal (se conservan sin reinterpretarlas):<br>${p.eventos
+      .filter((e) => e.tipo === "revision_alertas" && aplicable(e,fin))
       .map(
         (e) =>
           `Revisión ${e.registrado}: ${esc(e.resultado)} (${e.alertas.length} señales, ${esc(e.reglas.version)})`,
       )
       .join(
         "<br>",
-      )}</p></section><section class="card"><h2>Última experiencia registrada</h2>${visitas({ ...p, eventos: p.eventos.filter((e) => e.tipo === "visita").slice(-1) })}<div class="actions">${boton("visita", "Añadir visita")}</div></section></div>`;
+      )}</p></section><section class="card"><h2>Última experiencia registrada</h2>${visitas({ ...p, eventos: [ultimoEvento(p,"visita",fin)].filter(Boolean) })}<div class="actions">${boton("visita", "Añadir visita")}</div></section></div>`;
   if (tab === "historia")
     html += `<section class="card"><h2>Registro longitudinal</h2><p class="muted">Registros anexados, sin edición ni borrado individual. Los tratamientos previos conservan su identidad.</p>${[
-      ...p.eventos,
+      ...eventosHasta(p,fin).sort((a,b)=>(fechaEfectiva(a) || "").localeCompare(fechaEfectiva(b) || "")),
     ]
       .reverse()
       .map(
         (e) =>
-          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", estado_actuacion: "Actuación realizada", evaluacion_adherencia: "Valoración manual de adherencia", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.resultado || e.texto || "")}</p><small>Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "importacion" ? `<p>${e.filas.length} filas aceptadas · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
+          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", estado_actuacion: "Actuación realizada", gestion_senal: "Gestión de señal", correccion_dispensacion: "Corrección de dispensación", evaluacion_adherencia: "Valoración manual de adherencia", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.resultado || e.texto || "")}</p><small>Fecha efectiva: ${esc(e.tipo === "importacion" ? "Según las fechas de sus filas" : e.fecha || "No disponible; referencia de registro")} · Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "gestion_senal" ? `<p>${esc(e.regla)} · Motivo: ${esc(e.motivo)}${e.actuacion ? ` · Actuación ${esc(e.actuacion)}` : ""}</p>` : ""}${e.tipo === "correccion_dispensacion" ? `<p>Referencia ${esc(e.referencia)} · Motivo: ${esc(e.motivo)} · ${e.sustitucion ? "Sustitución" : "Anulación"}</p>` : ""}${e.tipo === "importacion" ? `<p>${e.decisiones?.length ? `Decisiones de conciliación: ${e.decisiones.map(d=>`${esc(d.accion)} · fila ${d.linea} · ${esc(d.motivo)}${d.referencia ? ` · Referencia ${esc(d.referencia)}` : ""}`).join("<br>")}<br>` : ""}${e.filas.filter(f=>f.fecha<=fin).length} filas hasta el corte de ${e.filas.length} aceptadas en el lote · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
       )
       .join("")}</section>`;
   if (tab === "adherencia")
@@ -303,8 +307,8 @@ function caso(p) {
   if (tab === "experiencia")
     html += `<section class="card"><div class="section-head"><h2>Escuchar y registrar</h2>${boton("visita", "Añadir visita")}</div><p class="muted">Opciones cerradas para demostración. No son un cuestionario ni una escala validados.</p>${visitas(p)}</section>`;
   if (tab === "intervenciones")
-    html += `<section class="card"><h2>Biblioteca CMO · Nivel ${nivel(p)}</h2><div class="notice warning">Catálogo acumulativo de la referencia. Existe una discrepancia declarada con la herramienta de origen, pendiente de revisión clínica. La selección corresponde al profesional.</div>${biblioteca.niveles[nivel(p)].intervenciones.map((x, i) => `<div class="item"><p>${esc(x.texto)}</p>${boton("actuacion", "Añadir a pendientes", String(i))}</div>`).join("")}<h3>Actuaciones del caso</h3>${p.eventos
-      .filter((e) => e.tipo === "actuacion")
+    html += `<section class="card"><h2>Biblioteca CMO · Nivel ${nivelCorte(p)}</h2><div class="notice warning">Catálogo acumulativo de la referencia. Existe una discrepancia declarada con la herramienta de origen, pendiente de revisión clínica. La selección corresponde al profesional.</div>${(biblioteca.niveles[nivelCorte(p)]?.intervenciones || []).map((x, i) => `<div class="item"><p>${esc(x.texto)}</p>${boton("actuacion", "Añadir a pendientes", String(i))}</div>`).join("")}<h3>Actuaciones del caso</h3>${p.eventos
+      .filter((e) => e.tipo === "actuacion" && aplicable(e,fin))
       .map(
         (e) =>
           `<div class="item"><p>${esc(e.texto)}</p>${badge(pendiente(p, e) ? "pendiente" : "realizada")}${pendiente(p, e) ? boton("realizada", "Marcar realizada", e.id) : ""}</div>`,
@@ -316,6 +320,7 @@ function caso(p) {
     html +=
       `<div class="actions">${boton("informe", "Generar informe simulado")}${boton("hoja-paciente", "Crear hoja para el paciente")}</div>` +
       listadoInformes([p]);
+  if (tab === "adherencia") html += tablaDispensaciones(p,fin);
   if (["resumen", "adherencia", "experiencia"].includes(tab)) html += vistaEvaluacionesManuales(p, fin);
   if (c.excluidos.length) html = `<div class="notice warning"><strong>TAR intramuscular registrado: PDC oral no aplicable a esos periodos.</strong><p>Se conservan los medicamentos, pero no se calculan ventanas de administración ni cobertura inyectable. El PDC mostrado, si existe, corresponde únicamente a periodos orales evaluables.</p></div>` + html;
   if (tab === "resumen") html += `<div class="actions">${boton("dispensacion-manual", "Registrar dispensación manual")}</div>`;
@@ -400,7 +405,7 @@ function render() {
     (publica
       ? ""
       : `<label class="no-print filtro">Fecha de corte de la evaluación<input id="corte" type="date" value="${fin}"></label>`) +
-    html;
+    html + (publica ? "" : '<p class="muted">Hechos hasta el corte inclusive; cobertura [inicio, corte), con el día de corte excluido. Reconstrucción con la información disponible hoy y correcciones retrospectivas. Si falta fecha efectiva, se usa la fecha de registro como referencia; los datos sin ninguna fecha no se atribuyen a un periodo histórico.</p>');
   conectarCohorte(db.pacientes, fin, reglas);
   document
     .querySelectorAll("[data-pct]")
@@ -426,7 +431,7 @@ $("nuevo").onclick = () => {
     (v) => {
       guardar(
         v.perfil === "blanco"
-          ? crearPaciente(db, v.nivel)
+          ? crearPaciente(db, v.nivel, fin)
           : crearCasoEscenario(db, v.perfil),
       );
       location.hash = "caso/" + db.pacientes.at(-1).id;
@@ -471,7 +476,7 @@ document.addEventListener("click", async (ev) => {
     if (a === "nivel")
       modal(
         "Registrar nueva asignación CMO",
-        campo(
+        campo("fecha", "Fecha efectiva", `<input name="fecha" type="date" value="${fin}" required>`) + campo(
           "nivel",
           "Nivel asignado (no se calcula)",
           select("nivel", ["1", "2", "3"]),
@@ -506,35 +511,11 @@ document.addEventListener("click", async (ev) => {
           add({ tipo: "visita", fecha, experiencia });
         },
       );
-    if (a === "csv")
-      modal(
-        "Importar dispensaciones sintéticas",
-        '<p class="muted">Use únicamente la plantilla de este caso. Validación completa antes de guardar; duplicados exactos se omiten y conflictos bloquean el lote.</p>' +
-          campo(
-            "archivo",
-            "Archivo CSV (opcional)",
-            `<input id="archivoCsv" type="file" accept=".csv,text/csv">`,
-          ) +
-          campo(
-            "csv",
-            "Contenido CSV",
-            `<textarea name="csv" id="csv" required placeholder="fecha;episodio;componente;dias"></textarea>`,
-          ),
-        async (v) => {
-          const r = importarCSV(p, v.csv);
-          const bytes = await crypto.subtle.digest(
-            "SHA-256",
-            new TextEncoder().encode(v.csv),
-          );
-          const huella = Array.from(new Uint8Array(bytes), (b) =>
-            b.toString(16).padStart(2, "0"),
-          ).join("");
-          add({ tipo: "importacion", fuente: "CSV sintético", huella, ...r });
-          return `${r.filas.length} filas incorporadas; ${r.duplicadas.length} duplicadas omitidas.`;
-        },
-      );
+    if (a === "csv") abrirCSVConciliado({p, modal, guardar:add});
+    if (a === "corregir-dispensacion") abrirCorreccion({p, referencia:id, modal, guardar:add});
+    if (a === "gestionar-senal") abrirGestionSenal({p,regla:id,fin,reglas,modal,guardar:add});
     if (a === "plantilla") {
-      const ep = episodios(p).at(-1);
+      const ep = tratamientoHasta(p,fin);
       if (!ep || ep.modalidad === "inyectable") throw Error("La plantilla CSV de días de suministro requiere un TAR oral.");
       descargar(
         "fecha;episodio;componente;dias\n" +
@@ -546,17 +527,19 @@ document.addEventListener("click", async (ev) => {
       );
     }
     if (a === "actuacion") {
-      const texto = biblioteca.niveles[nivel(p)].intervenciones[+id].texto;
+      const texto = biblioteca.niveles[nivelCorte(p)]?.intervenciones[+id]?.texto;
+      if (!texto) throw Error("Registre un nivel CMO efectivo para el corte antes de seleccionar la biblioteca.");
       add({
         tipo: "actuacion",
+        fecha: fin,
         texto,
         estado: "pendiente",
-        nivel: nivel(p),
+        nivel: nivelCorte(p),
         fuente: "CMO-VIH · preparadorconsulta 42402cb",
       });
     }
     if (a === "realizada")
-      add({ tipo: "estado_actuacion", actuacion: id, estado: "realizada" });
+      add({ tipo: "estado_actuacion", fecha: fin, actuacion: id, estado: "realizada" });
     if (a === "revision")
       modal(
         "Revisión profesional simulada",
@@ -613,10 +596,11 @@ document.addEventListener("click", async (ev) => {
         pp = db.pacientes.find((p) => p.id === pid),
         i = pp.eventos.find((e) => e.id === iid);
       if (a === "estado") {
-        const s = estadoComunicacion(pp, iid);
+        const s = estadoComunicacion(pp, iid, fin);
         guardar(
           anexar(db, pid, {
             tipo: "estado_comunicacion",
+            fecha: fin,
             informe: iid,
             estado: ESTADOS[ESTADOS.indexOf(s) + 1],
           }),

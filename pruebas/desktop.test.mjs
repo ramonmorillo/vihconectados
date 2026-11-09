@@ -18,7 +18,7 @@ test('Desktop preserva los cinco estados y distingue cobertura nula de cero',()=
  const i=p.eventos.find(e=>e.tipo==='informe');
  for (const estado of ['pendiente','comunicado','recibido','valorado','resuelto']) {
   const copia=structuredClone(p);
-  copia.eventos.push({tipo:'estado_comunicacion',informe:i.id,estado});
+  copia.eventos.push({tipo:'estado_comunicacion',fecha:'2026-11-08',informe:i.id,estado});
   assert.ok(tablaCohorte([copia],'2026-11-08',REGLAS).includes(`>${estado}</span>`));
  }
  const vacio={id:'DEMO-999',eventos:[]};

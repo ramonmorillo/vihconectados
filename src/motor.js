@@ -1,3 +1,5 @@
+import { ultimoEvento, aplicable, fechaEfectiva } from "./temporal.js";
+import { dispensacionesVigentes } from "./dispensaciones.js";
 /** Motor demostrativo v1. Fechas UTC; intervalos [inicio, fin). Sin inferencia de toma. */
 export const VERSION = "0.3.0";
 export const REGLAS = Object.freeze({
@@ -85,63 +87,42 @@ export function nivel(p) {
   return p.eventos.filter((e) => e.tipo === "nivel").at(-1)?.nivel || "3";
 }
 export function dispensaciones(p) {
-  return p.eventos
-    .filter((e) => e.tipo === "importacion")
-    .flatMap((e) => e.filas);
+  return dispensacionesVigentes(p);
 }
 /** CSV deliberadamente cerrado: no admite texto libre, datos identificativos ni columnas adicionales. */
-export function importarCSV(p, texto) {
-  if (texto.length > 100000)
-    throw Error("CSV demasiado grande (máximo 100 KB)");
-  const lineas = texto
-    .replace(/^\uFEFF/, "")
-    .trim()
-    .split(/\r?\n/);
-  if (lineas.shift() !== "fecha;episodio;componente;dias")
-    throw Error("Cabecera requerida: fecha;episodio;componente;dias");
-  if (!lineas.length || lineas.length > 1000)
-    throw Error("Se requieren entre 1 y 1000 filas");
-  const eps = episodios(p),
-    prev = dispensaciones(p),
-    filas = [],
-    duplicadas = [];
-  lineas.forEach((l, i) => {
-    const cols = l.split(";");
-    if (cols.length !== 4)
-      throw Error(`Fila ${i + 2}: se requieren cuatro columnas`);
-    const [f, ep, c, d] = cols;
-    fecha(f);
-    const idx = eps.findIndex((e) => e.id === ep),
-      e = eps[idx];
-    if (
-      !e ||
-      !componentes(e).includes(c) ||
-      f < e.fecha ||
-      (eps[idx + 1] && f >= eps[idx + 1].fecha)
-    )
-      throw Error(`Fila ${i + 2}: episodio, componente o fecha incompatibles`);
-    if (!/^\d+$/.test(d) || +d < 1 || +d > 400)
-      throw Error(`Fila ${i + 2}: días entre 1 y 400`);
-    const fila = {
-      fecha: f,
-      episodio: ep,
-      componente: c,
-      dias: +d,
-      linea: i + 2,
-    };
-    const todos = [...prev, ...filas];
-    const misma = todos.find(
-      (x) => x.fecha === f && x.episodio === ep && x.componente === c,
-    );
-    if (misma) {
-      if (misma.dias !== +d)
-        throw Error(
-          `Fila ${i + 2}: conflicto con dispensación existente; no se sobrescribe`,
-        );
-      duplicadas.push(i + 2);
-    } else filas.push(fila);
+export function leerCSV(p, texto) {
+  if (texto.length > 100000) throw Error("CSV demasiado grande (máximo 100 KB)");
+  const lineas=texto.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
+  const cabecera=lineas.shift(), extendido=cabecera === "fecha;episodio;componente;dias;origen;id_origen";
+  if (!extendido && cabecera !== "fecha;episodio;componente;dias") throw Error("Cabecera requerida: fecha;episodio;componente;dias (opcional: ;origen;id_origen)");
+  if (!lineas.length || lineas.length>1000) throw Error("Se requieren entre 1 y 1000 filas");
+  return lineas.map((l,i)=>{
+    const cols=l.split(";");
+    if (cols.length !== (extendido?6:4)) throw Error(`Fila ${i+2}: número de columnas incompatible`);
+    const [f,ep,c,d,origen,id_origen]=cols;
+    if (!/^\d+$/.test(d)) throw Error(`Fila ${i+2}: días enteros entre 1 y 400`);
+    const fila={fecha:f,episodio:ep,componente:c,dias:+d,linea:i+2,...(extendido?{origen,id_origen}:{})};
+    validarDispensacion(p,fila);return fila;
   });
-  return { filas, duplicadas };
+}
+export function validarDispensacion(p,f) {
+  fecha(f.fecha);
+  const eps=episodios(p), idx=eps.findIndex(e=>e.id===f.episodio), ep=eps[idx];
+  if (!ep || !componentes(ep).includes(f.componente) || f.fecha<ep.fecha || (eps[idx+1] && f.fecha>=eps[idx+1].fecha)) throw Error("Episodio, componente o fecha incompatibles");
+  if (!Number.isInteger(f.dias) || f.dias<1 || f.dias>400) throw Error("Días enteros entre 1 y 400");
+  if ((f.origen || f.id_origen) && (!/^[a-zA-Z0-9_.:-]{1,80}$/.test(f.origen || '') || !/^[a-zA-Z0-9_.:-]{1,80}$/.test(f.id_origen || ''))) throw Error("Origen e identificador deben indicarse juntos (1–80 caracteres alfanuméricos, punto, guion, dos puntos o guion bajo).");
+}
+/** Adaptador de compatibilidad para escenarios anteriores; la interfaz usa conciliación explícita. */
+export function importarCSV(p,texto) {
+  const entradas=leerCSV(p,texto), filas=[],duplicadas=[],prev=dispensaciones(p);
+  for (const f of entradas) {
+    const misma=[...prev,...filas].find(x=>x.fecha===f.fecha && x.episodio===f.episodio && x.componente===f.componente && (!f.id_origen || (x.origen===f.origen && x.id_origen===f.id_origen)));
+    if (misma) {
+      if (misma.dias!==f.dias) throw Error(`Fila ${f.linea}: conflicto con dispensación existente; no se sobrescribe`);
+      duplicadas.push(f.linea);
+    } else filas.push(f);
+  }
+  return {filas,duplicadas};
 }
 /** Entrada manual que comparte validación y deduplicación con la importación CSV. */
 export function prepararDispensacionManual(p, { fecha: dia, episodio, suministros }) {
@@ -255,9 +236,7 @@ export function alertas(p, fin, r = REGLAS) {
       regla: "datos_fuera_episodio",
       texto: `${fuera.length} dispensaciones fuera del episodio tras un cambio TAR. Se conservan y no aportan cobertura; conciliar los datos.`,
     });
-  const v = p.eventos
-    .filter((e) => e.tipo === "visita" && e.fecha <= fin)
-    .at(-1);
+  const v = ultimoEvento(p, "visita", fin);
   if (
     v &&
     [
@@ -291,10 +270,10 @@ export function transicion(actual, siguiente) {
     throw Error("Transición no permitida");
   return siguiente;
 }
-export function estadoComunicacion(p, id) {
+export function estadoComunicacion(p, id, fin) {
   return (
     p.eventos
-      .filter((e) => e.tipo === "estado_comunicacion" && e.informe === id)
+      .filter((e) => e.tipo === "estado_comunicacion" && e.informe === id && aplicable(e, fin))
       .at(-1)?.estado || "pendiente"
   );
 }
