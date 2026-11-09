@@ -171,3 +171,11 @@ En **Cobertura TAR → Dispensaciones y correcciones**, **Corregir / anular** co
 En **Resumen → Gestionar: regla**, registre revisión, justificación, actuación vinculada o cierre con motivo. La condición calculada permanece separada de su gestión. Los datos efectivos, reglas o intervalo nuevos requieren revisión nueva; volver a dibujar la pantalla no reabre señales. Los avisos metodológicos se separan de los pendientes asistenciales/de calidad de datos en contadores y filtros.
 
 Véase `docs/CONFIANZA_DATOS.md` para las decisiones temporales, compatibilidad, límites de reconstrucción, pruebas y recorrido de revisión. No se cambian umbrales ni se añaden servicios o dependencias.
+
+## Consulta guiada y seguimiento
+
+**Iniciar consulta guiada** permite revisar el contexto, vincular o recoger experiencia y valoración manual, acordar un problema/objetivo y crear o vincular una actuación con responsable funcional y fecha de revisión. Los cuatro pasos se guardan conjuntamente; cancelar no añade registros parciales.
+
+La nueva ruta **Consulta y seguimiento** muestra planes activos, vencidos al corte, próximos y cerrados, filtrados por responsable. **Registrar seguimiento** distingue la ejecución de la actuación del resultado del objetivo. Cerrar exige resultado y fundamento; no se marcan intervenciones realizadas automáticamente. Son responsables funcionales simulados, sin asignación a usuarios ni comunicaciones reales.
+
+Los planes y seguimientos conservan sus eventos e informes y respetan el corte. Los ejemplos nuevos declaran fechas efectivas para que no dependan del día en que se generan; los casos ya guardados se conservan sin cambios. Véase `docs/CONSULTA_SEGUIMIENTO.md` para recorrido, decisiones, pruebas y límites.

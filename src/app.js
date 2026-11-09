@@ -1,3 +1,5 @@
+import { abrirConsultaGuiada, abrirSeguimientoConsulta, vistaConsultas, vistaAgenda, conectarAgenda } from "./vista-consulta.js";
+import { agendaConsultas } from "./consulta.js";
 import { abrirCSVConciliado, tablaDispensaciones, abrirCorreccion, abrirGestionSenal } from "./revision-datos.js";
 import { fechaEfectiva, aplicable, eventosHasta, ultimoEvento, tratamientoHasta, nivelHasta } from "./temporal.js";
 import { evaluarSenales, pendientesSenales } from "./senales.js";
@@ -147,6 +149,7 @@ function pendiente(p, a) {
   );
 }
 function panel() {
+  const planes=agendaConsultas(db.pacientes,fin).filter(c=>c.estado!=="cerrada");
   const aa = db.pacientes.reduce(
       (n, p) => n + pendientesSenales(p, fin, reglas).length,
       0,
@@ -167,7 +170,7 @@ function panel() {
         ).length,
       0,
     );
-  return `<p class="intro">Una visión compartida para acompañar cada trayectoria.<br>Revise la cobertura, explore la experiencia y coordine el siguiente paso.</p><div class="stats">${[
+  return `<p class="notice"><a href="#seguimiento">${planes.length} planes activos · ${planes.filter(c=>c.plazo==="vencida").length} revisiones vencidas al corte →</a></p><p class="intro">Una visión compartida para acompañar cada trayectoria.<br>Revise la cobertura, explore la experiencia y coordine el siguiente paso.</p><div class="stats">${[
     ["Casos en seguimiento", db.pacientes.length, "Todos ficticios"],
     ["Señales para revisar", aa, "Sin validación clínica"],
     ["Actuaciones pendientes", ac, "Selección profesional"],
@@ -271,6 +274,7 @@ function caso(p) {
     a = evaluarSenales(p, fin, reglas);
   let html = `<p class="muted"><a href="#pacientes">← Todos los casos</a> / ${p.id} · Solo datos sintéticos</p>${p.escenario ? `<div class="notice cohorte-caption"><strong>${esc(p.escenario.titulo)}</strong><br>${esc(p.escenario.descripcion)}<br><small>Caso ficticio · ${esc(p.escenario.version)}</small></div>` : ""}<div class="tabs" role="group" aria-label="Secciones del caso">${[
     ["resumen", "Resumen"],
+    ["consulta", "Consulta y plan"],
     ["historia", "Historia longitudinal"],
     ["adherencia", "Cobertura TAR"],
     ["experiencia", "Experiencia"],
@@ -292,6 +296,7 @@ function caso(p) {
       .join(
         "<br>",
       )}</p></section><section class="card"><h2>Última experiencia registrada</h2>${visitas({ ...p, eventos: [ultimoEvento(p,"visita",fin)].filter(Boolean) })}<div class="actions">${boton("visita", "Añadir visita")}</div></section></div>`;
+  if (tab === "consulta" || tab === "resumen") html += vistaConsultas(p,fin);
   if (tab === "historia")
     html += `<section class="card"><h2>Registro longitudinal</h2><p class="muted">Registros anexados, sin edición ni borrado individual. Los tratamientos previos conservan su identidad.</p>${[
       ...eventosHasta(p,fin).sort((a,b)=>(fechaEfectiva(a) || "").localeCompare(fechaEfectiva(b) || "")),
@@ -299,7 +304,7 @@ function caso(p) {
       .reverse()
       .map(
         (e) =>
-          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", estado_actuacion: "Actuación realizada", gestion_senal: "Gestión de señal", correccion_dispensacion: "Corrección de dispensación", evaluacion_adherencia: "Valoración manual de adherencia", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.resultado || e.texto || "")}</p><small>Fecha efectiva: ${esc(e.tipo === "importacion" ? "Según las fechas de sus filas" : e.fecha || "No disponible; referencia de registro")} · Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "gestion_senal" ? `<p>${esc(e.regla)} · Motivo: ${esc(e.motivo)}${e.actuacion ? ` · Actuación ${esc(e.actuacion)}` : ""}</p>` : ""}${e.tipo === "correccion_dispensacion" ? `<p>Referencia ${esc(e.referencia)} · Motivo: ${esc(e.motivo)} · ${e.sustitucion ? "Sustitución" : "Anulación"}</p>` : ""}${e.tipo === "importacion" ? `<p>${e.decisiones?.length ? `Decisiones de conciliación: ${e.decisiones.map(d=>`${esc(d.accion)} · fila ${d.linea} · ${esc(d.motivo)}${d.referencia ? ` · Referencia ${esc(d.referencia)}` : ""}`).join("<br>")}<br>` : ""}${e.filas.filter(f=>f.fecha<=fin).length} filas hasta el corte de ${e.filas.length} aceptadas en el lote · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
+          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", estado_actuacion: "Actuación realizada", consulta: "Consulta y plan", seguimiento_consulta: "Seguimiento del plan", gestion_senal: "Gestión de señal", correccion_dispensacion: "Corrección de dispensación", evaluacion_adherencia: "Valoración manual de adherencia", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.resultado || e.texto || "")}</p><small>Fecha efectiva: ${esc(e.tipo === "importacion" ? "Según las fechas de sus filas" : e.fecha || "No disponible; referencia de registro")} · Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "gestion_senal" ? `<p>${esc(e.regla)} · Motivo: ${esc(e.motivo)}${e.actuacion ? ` · Actuación ${esc(e.actuacion)}` : ""}</p>` : ""}${e.tipo === "correccion_dispensacion" ? `<p>Referencia ${esc(e.referencia)} · Motivo: ${esc(e.motivo)} · ${e.sustitucion ? "Sustitución" : "Anulación"}</p>` : ""}${e.tipo === "importacion" ? `<p>${e.decisiones?.length ? `Decisiones de conciliación: ${e.decisiones.map(d=>`${esc(d.accion)} · fila ${d.linea} · ${esc(d.motivo)}${d.referencia ? ` · Referencia ${esc(d.referencia)}` : ""}`).join("<br>")}<br>` : ""}${e.filas.filter(f=>f.fecha<=fin).length} filas hasta el corte de ${e.filas.length} aceptadas en el lote · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
       )
       .join("")}</section>`;
   if (tab === "adherencia")
@@ -388,6 +393,9 @@ function render() {
         ),
     );
     html = `<p class="intro">Historias ficticias independientes para explorar el circuito asistencial. Los nuevos casos pueden crearse en blanco o a partir de un escenario.</p>${faltan.length ? `<div class="notice cohorte-notice"><strong>Cohorte de demostración actualizada</strong><br>Puede añadir ${faltan.length} escenarios nuevos. Sus casos e informes guardados se conservan.<br>${boton("actualizar-cohorte", "Añadir casos actualizados")}</div>` : ""}<section class="card">${tabla(db.pacientes)}</section>`;
+  } else if (route === "seguimiento") {
+    title = "Consulta y seguimiento";
+    html = vistaAgenda(db.pacientes,fin);
   } else if (route === "comunicaciones") {
     title = "Comunicación con Infecciosas";
     html =
@@ -407,6 +415,7 @@ function render() {
       : `<label class="no-print filtro">Fecha de corte de la evaluación<input id="corte" type="date" value="${fin}"></label>`) +
     html + (publica ? "" : '<p class="muted">Hechos hasta el corte inclusive; cobertura [inicio, corte), con el día de corte excluido. Reconstrucción con la información disponible hoy y correcciones retrospectivas. Si falta fecha efectiva, se usa la fecha de registro como referencia; los datos sin ninguna fecha no se atribuyen a un periodo histórico.</p>');
   conectarCohorte(db.pacientes, fin, reglas);
+  conectarAgenda(db.pacientes, fin);
   document
     .querySelectorAll("[data-pct]")
     .forEach((el) => (el.style.width = el.dataset.pct + "%"));
@@ -457,6 +466,11 @@ document.addEventListener("click", async (ev) => {
     id = b.dataset.id,
     p = paciente();
   try {
+    if (a === "consulta-guiada") abrirConsultaGuiada({ db, id:seleccion, fin, reglas, biblioteca, modal, guardar });
+    if (a === "seguimiento-consulta") {
+      const [pid,cid]=id.includes("|")?id.split("|"):[seleccion,id];
+      abrirSeguimientoConsulta({db,id:pid,consulta:cid,fin,modal,guardar});
+    }
     if (a === "desktop-biblioteca") { tab = "intervenciones"; render(); $("biblioteca-cmo").scrollIntoView(); }
     if (a === "desktop-informes") { tab = "informes"; render(); }
     if (a === "actualizar-cohorte") {

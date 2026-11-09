@@ -168,3 +168,7 @@ ol.desk-three li { padding-left: 8px; }
   .workspace-bar { display: none; }
   .pagina-trabajo main { padding: 0; }
 }
+
+/* Consulta guiada: conserva los tokens del espacio de trabajo. */
+.pagina-trabajo [data-paso] { border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; margin: 14px 0; min-width: 0; }
+.pagina-trabajo [data-paso] legend { padding: 0 6px; color: #0f4c81; font-weight: 650; max-width: 100%; }
