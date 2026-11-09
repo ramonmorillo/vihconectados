@@ -1,3 +1,4 @@
+import { validarConsulta, validarSeguimiento, contextoConsulta } from "./consulta.js";
 import { fechaEfectiva } from "./temporal.js";
 import { historialDispensaciones, planificarDispensaciones, mismaClave } from "./dispensaciones.js";
 import { validarGestionSenal } from "./senales.js";
@@ -89,6 +90,13 @@ export function anexar(db, id, evento) {
       throw Error("Experiencia no válida");
     if (p.eventos.some((x) => x.tipo === "visita" && x.fecha > e.fecha))
       throw Error("Fecha anterior a la última visita");
+  } else if (e.tipo === "consulta") {
+    validarConsulta(p,e);
+    e.objetivo=e.objetivo.trim();
+    e.contexto=contextoConsulta(p,e.fecha,e.reglas || REGLAS);
+  } else if (e.tipo === "seguimiento_consulta") {
+    validarSeguimiento(p,e);
+    e.observaciones=e.observaciones.trim();
   } else if (e.tipo === "gestion_senal") {
     if (!e.fecha) throw Error("Indique fecha efectiva de gestión.");
     validarGestionSenal(p,e,e.reglas || REGLAS);

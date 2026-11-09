@@ -37,7 +37,7 @@ const experiencia = (overrides = {}) => ({
 export function crearCasoEscenario(db, clave) {
   const escenario = ESCENARIOS.find((e) => e.id === clave);
   if (!escenario) throw Error("Escenario sintético desconocido");
-  let next = crearPaciente(db, escenario.nivel),
+  let next = crearPaciente(db, escenario.nivel, "2026-05-01"),
     id = next.pacientes.at(-1).id;
   next.pacientes.at(-1).escenario = { ...escenario, version: VERSION_COHORTE };
   const add = (e) => {
@@ -61,6 +61,7 @@ export function crearCasoEscenario(db, clave) {
   const actuacion = (texto, hecha = false) => {
     add({
       tipo: "actuacion",
+      fecha: "2026-11-08",
       texto,
       estado: "pendiente",
       fuente: "Biblioteca CMO-VIH · preparadorconsulta 42402cb",
@@ -68,6 +69,7 @@ export function crearCasoEscenario(db, clave) {
     if (hecha)
       add({
         tipo: "estado_actuacion",
+        fecha: "2026-11-08",
         actuacion: p().eventos.at(-1).id,
         estado: "realizada",
       });
@@ -105,7 +107,7 @@ export function crearCasoEscenario(db, clave) {
     add(informe(p(), "2026-11-08"));
     const inf = p().eventos.at(-1).id;
     for (const estado of ["comunicado", "recibido"])
-      add({ tipo: "estado_comunicacion", informe: inf, estado });
+      add({ tipo: "estado_comunicacion", fecha: "2026-11-08", informe: inf, estado });
   } else if (clave === "cambio") {
     const ep1 = tar("2026-05-01", "TAR_A");
     lote(ep1, [
@@ -141,7 +143,7 @@ export function crearCasoEscenario(db, clave) {
     add(informe(p(), "2026-11-08"));
     const inf = p().eventos.at(-1).id;
     for (const estado of ["comunicado", "recibido", "valorado"])
-      add({ tipo: "estado_comunicacion", informe: inf, estado });
+      add({ tipo: "estado_comunicacion", fecha: "2026-11-08", informe: inf, estado });
   } else {
     const ep = tar("2026-05-01", "TAR_CD");
     lote(

@@ -1,3 +1,4 @@
+import { consultasHasta, textoPlan } from "./consulta.js";
 import { nivelHasta, eventosHasta, tratamientoHasta, ultimoEvento, aplicable } from "./temporal.js";
 import { evaluarSenales } from "./senales.js";
 import { ultimaEvaluacionAdherencia, textoEvaluacionAdherencia } from "./adherencia.js";
@@ -92,6 +93,7 @@ export function resumenInforme(i) {
     }));
   return {
     tratamiento,
+    consultas: consultasHasta(p,i.fecha),
     evaluacion_adherencia: ultimaEvaluacionAdherencia(p, i.fecha),
     visita,
     actuaciones,
@@ -143,6 +145,7 @@ export function textoInforme(i) {
           ([k, v]) => `- ${ETIQUETAS[k] || k}: ${v}`,
         )
       : ["No explorada en registros disponibles."]),
+    ...(s.consultas.length ? ["PLANES Y SEGUIMIENTO",...s.consultas.map(textoPlan)] : []),
     "ACTUACIONES",
     ...(s.actuaciones.length
       ? s.actuaciones.map((a) => `- [${a.estado}] ${a.texto}`)
