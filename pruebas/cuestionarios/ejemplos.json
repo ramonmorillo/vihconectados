@@ -1,0 +1,99 @@
+{
+  "formato": "vihconectados/cuestionarios-ejemplo@1",
+  "estado_revision": "EJEMPLOS DE DISEÑO PROPIO (actuación A14). Ninguno reproduce un instrumento con licencia. Todos son borradores sin revisar, no activables mientras sus protocolos no estén aprobados. Los textos son para discutir el formato, no contenido clínico validado.",
+  "cuestionarios": [
+    {
+      "formato": "vihconectados/cuestionario@1",
+      "id": "seguimiento-entre-consultas", "version": "0.1.0", "estado": "borrador", "aprobacion": null,
+      "titulo": "Seguimiento entre consultas",
+      "proposito": "Recoger de forma breve las dificultades y las molestias que el paciente refiere con su tratamiento entre dos consultas.",
+      "poblacion": "Personas con tratamiento antirretroviral oral que desean un seguimiento entre consultas.",
+      "instrumento": {"origen": "propio"},
+      "canales": ["web_autenticado", "entrevista_profesional"],
+      "aviso_inicial": "AVISO-NO-URGENTE", "mensaje_cierre": "CIERRE-GENERICO",
+      "inicio": "dificultad_toma",
+      "items": [
+        {"id": "dificultad_toma", "tipo": "si_no", "texto": "En las últimas semanas, ¿ha tenido alguna dificultad para tomar su medicación como le indicaron?", "obligatorio": true,
+         "registro": {"tipo": "afirmacion", "fuente": "autoinforme", "magnitud": "dificultad_referida", "dominio": "dificultad", "positivas": ["si"]},
+         "siguiente": [{"cuando": {"item": "dificultad_toma", "op": "es", "valor": "si"}, "ir_a": "tipo_dificultad"}], "por_defecto": "efectos"},
+        {"id": "tipo_dificultad", "tipo": "opcion_multiple", "texto": "¿Qué le ha dificultado tomarla? Puede marcar varias opciones.", "obligatorio": true,
+         "opciones": [{"codigo": "olvidos", "texto": "Olvidos"}, {"codigo": "horario", "texto": "El horario"}, {"codigo": "deglucion", "texto": "Dificultad para tragar"}, {"codigo": "acceso", "texto": "Conseguir la medicación"}, {"codigo": "privacidad", "texto": "Que otras personas lo sepan"}, {"codigo": "otra", "texto": "Otra razón"}],
+         "registro": {"tipo": "respuesta"}, "siguiente": [], "por_defecto": "efectos"},
+        {"id": "efectos", "tipo": "si_no", "texto": "¿Ha notado molestias que relacione con su medicación?", "obligatorio": true,
+         "registro": {"tipo": "afirmacion", "fuente": "autoinforme", "magnitud": "dificultad_referida", "dominio": "efecto", "positivas": ["si"]},
+         "siguiente": [{"cuando": {"item": "efectos", "op": "es", "valor": "si"}, "ir_a": "tipo_efecto"}], "por_defecto": "contacto"},
+        {"id": "tipo_efecto", "tipo": "opcion_multiple", "texto": "¿Qué tipo de molestias? Puede marcar varias opciones.", "obligatorio": true,
+         "opciones": [{"codigo": "digestivas", "texto": "Digestivas"}, {"codigo": "sueno", "texto": "Del sueño"}, {"codigo": "otras", "texto": "Otras"}],
+         "registro": {"tipo": "respuesta"}, "siguiente": [], "por_defecto": "contacto"},
+        {"id": "contacto", "tipo": "si_no", "texto": "¿Quiere que alguien de su equipo se ponga en contacto con usted?", "obligatorio": true,
+         "registro": {"tipo": "respuesta"}, "siguiente": [], "por_defecto": "FIN"}
+      ],
+      "escalado": [
+        {"id": "e-dificultad", "cuando": {"item": "dificultad_toma", "op": "es", "valor": "si"}, "protocolo": "PR-REVISION-FARMACIA", "motivo": "dificultad_referida"},
+        {"id": "e-efecto", "cuando": {"item": "efectos", "op": "es", "valor": "si"}, "protocolo": "PR-REVISION-FARMACIA", "motivo": "efecto_referido"},
+        {"id": "e-acceso", "cuando": {"item": "tipo_dificultad", "op": "incluye", "valor": "acceso"}, "protocolo": "PR-ACCESO", "motivo": "barrera_de_acceso"},
+        {"id": "e-contacto", "cuando": {"item": "contacto", "op": "es", "valor": "si"}, "protocolo": "PR-CONTACTO", "motivo": "solicita_contacto"}
+      ]
+    },
+    {
+      "formato": "vihconectados/cuestionario@1",
+      "id": "citas-tar-accion-prolongada", "version": "0.1.0", "estado": "borrador", "aprobacion": null,
+      "titulo": "Próxima inyección del tratamiento de acción prolongada",
+      "proposito": "Comprobar con el paciente, antes de su próxima inyección, que la cita está confirmada y que podrá acudir.",
+      "poblacion": "Personas con tratamiento inyectable de acción prolongada, antes de la fecha de su siguiente inyección.",
+      "instrumento": {"origen": "propio"},
+      "canales": ["web_autenticado", "entrevista_profesional"],
+      "aviso_inicial": "AVISO-NO-URGENTE", "mensaje_cierre": "CIERRE-GENERICO",
+      "inicio": "cita_confirmada",
+      "items": [
+        {"id": "cita_confirmada", "tipo": "opcion_unica", "texto": "¿Tiene confirmada la fecha de su próxima inyección?", "obligatorio": true,
+         "opciones": [{"codigo": "si", "texto": "Sí"}, {"codigo": "no", "texto": "No"}, {"codigo": "no_se", "texto": "No lo sé"}],
+         "registro": {"tipo": "respuesta"},
+         "siguiente": [{"cuando": {"item": "cita_confirmada", "op": "es", "valor": "si"}, "ir_a": "puede_acudir"}], "por_defecto": "contacto"},
+        {"id": "puede_acudir", "tipo": "si_no", "texto": "¿Podrá acudir a esa cita en la fecha indicada?", "obligatorio": true,
+         "registro": {"tipo": "respuesta"},
+         "siguiente": [{"cuando": {"item": "puede_acudir", "op": "es", "valor": "no"}, "ir_a": "motivo_no_acude"}], "por_defecto": "contacto"},
+        {"id": "motivo_no_acude", "tipo": "opcion_unica", "texto": "¿Cuál es el motivo principal?", "obligatorio": true,
+         "opciones": [{"codigo": "trabajo_o_viaje", "texto": "Trabajo o viaje"}, {"codigo": "salud", "texto": "Motivos de salud"}, {"codigo": "desplazamiento", "texto": "Dificultad para desplazarme"}, {"codigo": "otro", "texto": "Otro motivo"}],
+         "registro": {"tipo": "respuesta"}, "siguiente": [], "por_defecto": "contacto"},
+        {"id": "contacto", "tipo": "si_no", "texto": "¿Quiere que alguien de su equipo se ponga en contacto con usted?", "obligatorio": true,
+         "registro": {"tipo": "respuesta"}, "siguiente": [], "por_defecto": "FIN"}
+      ],
+      "escalado": [
+        {"id": "e-cita-sin-confirmar", "cuando": {"alguna": [{"item": "cita_confirmada", "op": "es", "valor": "no"}, {"item": "cita_confirmada", "op": "es", "valor": "no_se"}]}, "protocolo": "PR-CITA-LA", "motivo": "cita_no_confirmada"},
+        {"id": "e-no-acudira", "cuando": {"item": "puede_acudir", "op": "es", "valor": "no"}, "protocolo": "PR-CITA-LA", "motivo": "no_acudira_a_cita"},
+        {"id": "e-contacto", "cuando": {"item": "contacto", "op": "es", "valor": "si"}, "protocolo": "PR-CONTACTO", "motivo": "solicita_contacto"}
+      ]
+    },
+    {
+      "formato": "vihconectados/cuestionario@1",
+      "id": "tolerabilidad-tras-cambio-tar", "version": "0.1.0", "estado": "borrador", "aprobacion": null,
+      "titulo": "Primeras semanas tras un cambio de tratamiento",
+      "proposito": "Recoger las molestias que el paciente refiere en las primeras semanas tras un cambio de tratamiento y si le dificultan tomarlo.",
+      "poblacion": "Personas que han cambiado de tratamiento antirretroviral en las últimas semanas.",
+      "instrumento": {"origen": "propio"},
+      "canales": ["web_autenticado", "entrevista_profesional"],
+      "aviso_inicial": "AVISO-NO-URGENTE", "mensaje_cierre": "CIERRE-GENERICO",
+      "inicio": "molestias",
+      "items": [
+        {"id": "molestias", "tipo": "opcion_unica", "texto": "Desde el cambio de tratamiento, ¿ha notado molestias?", "obligatorio": true,
+         "opciones": [{"codigo": "ninguna", "texto": "Ninguna"}, {"codigo": "leves", "texto": "Leves"}, {"codigo": "preocupan", "texto": "Que me preocupan"}],
+         "registro": {"tipo": "afirmacion", "fuente": "autoinforme", "magnitud": "dificultad_referida", "dominio": "efecto", "positivas": ["leves", "preocupan"]},
+         "siguiente": [{"cuando": {"item": "molestias", "op": "es", "valor": "ninguna"}, "ir_a": "contacto"}], "por_defecto": "tipo"},
+        {"id": "tipo", "tipo": "opcion_multiple", "texto": "¿Qué tipo de molestias? Puede marcar varias opciones.", "obligatorio": true,
+         "opciones": [{"codigo": "digestivas", "texto": "Digestivas"}, {"codigo": "sueno", "texto": "Del sueño"}, {"codigo": "deglucion", "texto": "Dificultad para tragar"}, {"codigo": "otras", "texto": "Otras"}],
+         "registro": {"tipo": "respuesta"}, "siguiente": [], "por_defecto": "afecta_toma"},
+        {"id": "afecta_toma", "tipo": "si_no", "texto": "¿Esas molestias le dificultan tomar la medicación?", "obligatorio": true,
+         "registro": {"tipo": "afirmacion", "fuente": "autoinforme", "magnitud": "dificultad_referida", "dominio": "dificultad", "positivas": ["si"]},
+         "siguiente": [], "por_defecto": "contacto"},
+        {"id": "contacto", "tipo": "si_no", "texto": "¿Quiere que alguien de su equipo se ponga en contacto con usted?", "obligatorio": true,
+         "registro": {"tipo": "respuesta"}, "siguiente": [], "por_defecto": "FIN"}
+      ],
+      "escalado": [
+        {"id": "e-preocupan", "cuando": {"item": "molestias", "op": "es", "valor": "preocupan"}, "protocolo": "PR-REVISION-FARMACIA", "motivo": "efecto_referido"},
+        {"id": "e-dificultan", "cuando": {"item": "afecta_toma", "op": "es", "valor": "si"}, "protocolo": "PR-REVISION-FARMACIA", "motivo": "dificultad_referida"},
+        {"id": "e-contacto", "cuando": {"item": "contacto", "op": "es", "valor": "si"}, "protocolo": "PR-CONTACTO", "motivo": "solicita_contacto"}
+      ]
+    }
+  ]
+}

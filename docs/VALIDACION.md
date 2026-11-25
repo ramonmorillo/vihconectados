@@ -1,5 +1,16 @@
 # Validación técnica ejecutada
 
+## Actuación A14 · Cuestionarios declarativos y reglas de escalado (2026-11-25)
+
+Ver `docs/strategy/QUESTIONNAIRE_SPEC.md`. **Borrador sin aprobar; no hay cambios en la aplicación.** No es validación clínica.
+
+- `src/esquema-cuestionario.js` (esquema cerrado, lenguaje de condiciones, `esActivable`; sin dependencias ni conexión con la aplicación) y `pruebas/cuestionarios/` (3 cuestionarios de diseño propio y el registro de 4 protocolos y 2 avisos, **todos pendientes de aprobación**).
+- Recorrido exhaustivo de 136 caminos (80, 14 y 42): todos terminan, no repiten preguntas, son deterministas y cada regla de escalado se dispara en algún camino y no en todos. Las respuestas producen afirmaciones válidas del modelo de evidencia (A15).
+- Ningún ejemplo es activable: faltan la aprobación del cuestionario, de sus protocolos (responsable, plazo y prioridad) y de los avisos.
+- Sensibilidad: 13 defectos introducidos en una copia fuera del repositorio (saltos hacia atrás, preguntas inalcanzables, condiciones sobre respuestas no dadas, licencia sin autorización, aprobación sin acta, protocolo aprobado sin plazo, activación sin comprobar protocolos, semántica de lo no respondido, `alguna` como `todas`, tipo de pregunta de texto libre, consejo clínico en un texto, nombre de una escala conocida, protocolo aprobado sin datos). **Se detectan los 13.**
+- `npm test`: 182 pruebas superadas (170 previas + 12 de `cuestionarios.test.mjs`). `npm run check` correcto.
+- Pendiente: aprobación del comité (protocolos, textos, 11 decisiones D-Q) y representación de pacientes.
+
 ## Actuación A07 · Dominio/interfaz y puerto por comandos (2026-11-25)
 
 Ver `docs/ARQUITECTURA.md`. Reorganización **sin cambio de comportamiento visible**. No es validación clínica ni de seguridad.
