@@ -1,5 +1,14 @@
 # Validación técnica ejecutada
 
+## Actuaciones A06 y A04 de la auditoría estratégica (2026-11-25)
+
+Ver `docs/strategy/PRIORITIZED_BACKLOG.md`. No es validación clínica.
+
+- **A06 · Higiene de seguridad clínica.** (1) Un episodio de TAR intramuscular genera una señal pendiente de categoría `no_monitorizado` con el texto «NO MONITORIZADO», visible en panel, cohorte e informes; antes era un aviso que no contaba como pendiente (sondeo reproducible: 0 pendientes). El PDC y la exclusión del PDC oral no cambian. (2) `crearPaciente` ya no asigna nivel «3» por defecto: sin nivel indicado el caso queda sin estratificar. (3) Se elimina `motor.nivel()`, sin llamadores, y sus tres imports no usados. El fixture `base()` de `motor.test.mjs` indica ahora `"3"` de forma explícita para conservar su escenario original; es el único cambio en pruebas previas. La interfaz sigue pidiendo el nivel de forma explícita al crear un caso en blanco (el primer valor del selector es «1»; no se ha cambiado).
+- **A04 · Corpus dorado.** `pruebas/corpus-dorado/` (26 casos, 7 familias; LA-TAR pendiente de A13). Resultados esperados deducidos a mano antes de ejecutar el motor; coincidencia exacta a la primera, con un oráculo secundario de algoritmo distinto. Mutaciones del motor en una copia fuera del repositorio: 6 de 7 detectadas; la restante es un mutante equivalente (véase el README del corpus). **Pendiente: revisión y firma de un segundo revisor independiente.**
+- `npm test`: 90 pruebas superadas (55 previas + 7 de `seguridad-clinica.test.mjs` + 28 de `corpus-dorado.test.mjs`). `npm run check`: correcto.
+- Recorridos de navegador (Chromium preinstalado, servidor local, CIMA interceptado): `navegador`, `publico`, `desktop`, `registro-manual`, `confianza` y `consulta` superados.
+
 ## Versión 0.3.0 — Información legal, portada y hospitales
 
 08/11/2026. `npm run check`: correcto. `npm test`: 26 pruebas ejecutadas y pasadas, sin fallos ni omisiones. Se mantienen las comprobaciones de cobertura, CIMA, histórico e informes; se añaden cohorte diferenciada, actualización aditiva/idempotente, independencia de casos, acceso sin identidad y rechazo del inicio de sesión institucional.

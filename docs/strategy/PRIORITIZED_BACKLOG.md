@@ -50,6 +50,7 @@ Las actuaciones A02–A21 no necesitan que se haya decidido la ruta regulatoria,
 - **Aceptación:** (1) `REGLAS` (`motor.js:5-10`) se lee de un registro (`id`, `version`, `fuente`, `estado_validacion`, parámetros con unidades) sin cambiar ningún valor; (2) las 55 pruebas existentes pasan **sin modificar sus expectativas**; (3) cada señal e informe incluye `id`, `version` y estado de validación de la regla; (4) una prueba demuestra que cambiar un parámetro exige nueva versión y que informes antiguos conservan la suya.
 
 ### A04 · Corpus dorado de PDC y verificación independiente
+> **Estado 2026-11-25: IMPLEMENTADO PARCIALMENTE.** 26 casos en `pruebas/corpus-dorado/`, esperados deducidos a mano antes de ejecutar, sin discrepancias. **Falta la firma de un segundo revisor independiente** (criterio 2 no cerrable por el auditor) y la familia LA-TAR (depende de A13). Ver `pruebas/corpus-dorado/README.md`.
 - **Impacto:** Alto (seguridad de la métrica central). · **Esfuerzo:** M. · **Prioridad:** **P0** · **Tipo:** pruebas
 - **Dependencias:** un segundo revisor que calcule los resultados esperados sin leer `motor.js`. · **Riesgo:** bajo; puede revelar discrepancias (es su finalidad) [R03, R22].
 - **Aceptación:** (1) al menos un caso por cada familia de `VALIDATION_MASTER_PLAN.md` §2.1; (2) los resultados esperados están firmados antes de ejecutar el motor; (3) se ejecuta con `npm test`; (4) cualquier discrepancia queda registrada con decisión del CCR y no se «arregla» la prueba para que pase.
@@ -60,6 +61,7 @@ Las actuaciones A02–A21 no necesitan que se haya decidido la ruta regulatoria,
 - **Aceptación:** (1) `npm test` y `npm run check` se ejecutan en cada *push*/PR y bloquean la integración si fallan; (2) no se añaden dependencias de ejecución; (3) sin credenciales en la configuración.
 
 ### A06 · Higiene de seguridad clínica en el código existente
+> **Estado 2026-11-25: IMPLEMENTADO Y VERIFICADO** (90 pruebas unitarias y 6 recorridos de navegador superados). Decisión de diseño tomada por el auditor a falta del CCR: el episodio intramuscular es una señal pendiente de categoría `no_monitorizado` (no un indicador permanente). **El CCR debe confirmarla o cambiarla.** Detalle en `docs/VALIDACION.md`.
 - **Impacto:** Alto (elimina el silencio ante inyectables y la subestimación por nivel por defecto). · **Esfuerzo:** S. · **Prioridad:** **P0** · **Tipo:** código acotado
 - **Dependencias:** decisión del CCR sobre cómo mostrar «no monitorizado» (señal pendiente vs. indicador permanente). · **Riesgo:** bajo–medio (cambia contadores visibles; no cambia el PDC) [R01, R05].
 - **Aceptación:**
