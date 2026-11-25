@@ -3,6 +3,13 @@ import { textoEvaluacionAdherencia } from "./adherencia.js";
 import { resumenInforme, ETIQUETAS } from "./informes.js";
 import { nombreTar } from "./motor.js";
 import { ADHEFAR } from "./recursos.js";
+/** Resumen compacto para la hoja impresa (agrupa por versión y estado); el detalle por regla va en el texto y en el JSON. */
+const resumenReglas = (reglas) => {
+  if (!Array.isArray(reglas) || !reglas.length) return "";
+  const grupos = new Map();
+  for (const x of reglas) grupos.set(`${x.version} · ${x.estado_validacion}`, (grupos.get(`${x.version} · ${x.estado_validacion}`) || 0) + 1);
+  return `Reglas aplicadas: ${[...grupos].map(([k, n]) => `${n} ${n === 1 ? "regla" : "reglas"} ${esc(k)}`).join("; ")}. `;
+};
 export const esc = (x) =>
   String(x ?? "").replace(
     /[&<>"']/g,
@@ -50,5 +57,5 @@ export function vistaInforme(i) {
           )
           .join("")}</dl>`
       : "<p>No hay una experiencia registrada para esta fecha.</p>"
-  }${s.evaluacion_adherencia ? `<h3>Valoración manual de adherencia</h3><p>${esc(textoEvaluacionAdherencia(s.evaluacion_adherencia))}</p>` : ""}${s.consultas.length ? `<h3>Planes y seguimiento</h3>${s.consultas.map(c=>`<p>${esc(textoPlan(c))}</p>`).join("")}` : ""}${s.actuaciones.length ? `<ul class="doc-list">${s.actuaciones.map((a) => `<li><span class="doc-status">${esc(a.estado)}</span>${esc(a.texto)}</li>`).join("")}</ul>` : "<p>No hay actuaciones registradas.</p>"}</section><section class="doc-section"><h2><span>04</span> Revisión y comunicación</h2>${s.revisiones.length ? s.revisiones.map((r) => `<p>${dia(r.fecha)} · ${esc(r.resultado)}</p>`).join("") : "<p>Revisión profesional simulada pendiente. Las señales no se han confirmado clínicamente.</p>"}<p>Documento para ${esc(i.destino)}. Su generación no acredita envío, recepción ni resolución.</p></section><div class="doc-method"><strong>Método y límites</strong><p>Reglas ${esc(c.reglas.version)} · Ventana ${c.reglas.ventana} días · Parámetro demostrativo ${Math.round(c.reglas.umbral * 100)} %. Criterios pendientes de validación clínica. Intersección del TAR completo; sin arrastre entre episodios. Las fuentes CIMA son una instantánea del catálogo, no una validación del régimen.</p><p>Informe fijo: los registros posteriores no alteran su contenido. Trazabilidad completa disponible en la exportación JSON.</p></div>${pie(i)}</article>`;
+  }${s.evaluacion_adherencia ? `<h3>Valoración manual de adherencia</h3><p>${esc(textoEvaluacionAdherencia(s.evaluacion_adherencia))}</p>` : ""}${s.consultas.length ? `<h3>Planes y seguimiento</h3>${s.consultas.map(c=>`<p>${esc(textoPlan(c))}</p>`).join("")}` : ""}${s.actuaciones.length ? `<ul class="doc-list">${s.actuaciones.map((a) => `<li><span class="doc-status">${esc(a.estado)}</span>${esc(a.texto)}</li>`).join("")}</ul>` : "<p>No hay actuaciones registradas.</p>"}</section><section class="doc-section"><h2><span>04</span> Revisión y comunicación</h2>${s.revisiones.length ? s.revisiones.map((r) => `<p>${dia(r.fecha)} · ${esc(r.resultado)}</p>`).join("") : "<p>Revisión profesional simulada pendiente. Las señales no se han confirmado clínicamente.</p>"}<p>Documento para ${esc(i.destino)}. Su generación no acredita envío, recepción ni resolución.</p></section><div class="doc-method"><strong>Método y límites</strong><p>Reglas ${esc(c.reglas.version)} · Ventana ${c.reglas.ventana} días · Parámetro demostrativo ${Math.round(c.reglas.umbral * 100)} %. Criterios pendientes de validación clínica. Intersección del TAR completo; sin arrastre entre episodios. Las fuentes CIMA son una instantánea del catálogo, no una validación del régimen.</p><p>${resumenReglas(i.reglas_aplicadas)}Informe fijo: los registros posteriores no alteran su contenido. Trazabilidad completa disponible en la exportación JSON.</p></div>${pie(i)}</article>`;
 }

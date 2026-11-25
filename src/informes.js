@@ -12,6 +12,7 @@ import {
   fecha,
 } from "./motor.js";
 import { ADHEFAR } from "./recursos.js";
+import { fichasAplicadas } from "./reglas.js";
 const esInforme = (e) => ["informe", "informe_paciente"].includes(e.tipo);
 export function informe(p, fin, r = REGLAS) {
   return structuredClone({
@@ -26,6 +27,7 @@ export function informe(p, fin, r = REGLAS) {
     paciente: p.id,
     nivel: nivelHasta(p,fin) || "Sin dato",
     cobertura: cobertura(p, fin, r),
+    reglas_aplicadas: fichasAplicadas(r),
     alertas: evaluarSenales(p, fin, r),
     informes_previos: p.eventos.filter(e=>esInforme(e) && aplicable(e,fin)).map((e) => e.id),
     eventos: p.eventos.filter((e) => !esInforme(e)),
@@ -163,6 +165,9 @@ export function textoInforme(i) {
         ]
       : []),
     `Reglas: ${c.reglas.version} · Ventana ${c.reglas.ventana} días · Parámetro demostrativo ${Math.round(c.reglas.umbral * 100)} % · Pendiente de validación clínica.`,
+    ...(i.reglas_aplicadas
+      ? [`Reglas aplicadas: ${i.reglas_aplicadas.map((x) => `${x.id} ${x.version} (${x.estado_validacion})`).join(" · ")}`]
+      : []),
     `Registro de informe: ${i.id || "Vista previa"} · Aplicación ${i.version}`,
   ].join("\n");
 }

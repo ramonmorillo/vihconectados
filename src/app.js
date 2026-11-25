@@ -16,8 +16,8 @@ import {
   alertas,
   importarCSV,
   estadoComunicacion,
-  validarReglas,
 } from "./motor.js";
+import { reglasConParametros, fichasAplicadas } from "./reglas.js";
 import { RepositorioDemo, crearPaciente, anexar } from "./almacen.js";
 import {
   demo,
@@ -331,7 +331,7 @@ function caso(p) {
   return html;
 }
 function modelo() {
-  return `<section class="card"><h2>Modelo CMO</h2><p class="intro">Capacidad, Motivación y Oportunidad: la tecnología apoya la continuidad de la atención, y la valoración corresponde al profesional.</p><h3>Reglas de demostración · ${esc(reglas.version)}</h3><p>Ventana: ${reglas.ventana} días · Parámetro de señal: ${Math.round(reglas.umbral * 100)} %</p><p class="muted">Proceden de reglas v0.2.0 del preparador: pendientes de validación. La cobertura usa inicio de tratamiento explícito y unión por componente con intersección del TAR completo. No estima ingesta, supresión virológica ni riesgo clínico. El TAR intramuscular solo se registra como catálogo: se excluye del PDC oral y no se calculan ventanas ni administraciones. No incluye hospitalizaciones ni dispensación externa.</p>${boton("reglas", "Configurar parámetros de demostración")}<h3>Privacidad y almacenamiento</h3><p class="muted">Sin campos de nombres, documentos o contactos. Las instrucciones de la hoja del paciente son texto local y deben ser exclusivamente sintéticas. Los casos se generan con prefijo DEMO. Los datos se guardan en este navegador; no hay envío de casos, analítica, backend clínico o API generativa. Solo las búsquedas explícitas de medicamentos consultan CIMA (AEMPS), sin datos del caso. El almacenamiento local no ofrece las garantías de un sistema sanitario.</p><h3>Fuentes y autoría</h3><p class="muted">Autor: Dr. Ramón Morillo Verdugo. Adaptaciones CMO: Sociedad Española de Farmacia Hospitalaria (SEFH). Biblioteca y guion conservan sus metadatos originales. No se declara validación clínica ni licencia de terceros no otorgada.</p><div class="actions">${boton("exportar", "Exportar demostración JSON")}</div></section>`;
+  return `<section class="card"><h2>Modelo CMO</h2><p class="intro">Capacidad, Motivación y Oportunidad: la tecnología apoya la continuidad de la atención, y la valoración corresponde al profesional.</p><h3>Reglas de demostración · ${esc(reglas.version)}</h3><p>Ventana: ${reglas.ventana} días · Parámetro de señal: ${Math.round(reglas.umbral * 100)} %</p><div class="table-wrap" id="registroReglas"><table><caption class="muted">Registro de reglas aplicadas (src/reglas.js). Ninguna regla está validada clínicamente.</caption><thead><tr><th scope="col">Regla</th><th scope="col">Tipo</th><th scope="col">Versión</th><th scope="col">Estado de validación</th></tr></thead><tbody>${fichasAplicadas(reglas).map((f) => `<tr><td><code>${esc(f.id)}</code></td><td>${f.tipo === "metrica" ? "Métrica" : "Señal"}</td><td>${esc(f.version)}</td><td>${esc(f.estado_validacion)}</td></tr>`).join("")}</tbody></table></div><p class="muted">Proceden de reglas v0.2.0 del preparador: pendientes de validación. La cobertura usa inicio de tratamiento explícito y unión por componente con intersección del TAR completo. No estima ingesta, supresión virológica ni riesgo clínico. El TAR intramuscular solo se registra como catálogo: se excluye del PDC oral y no se calculan ventanas ni administraciones. No incluye hospitalizaciones ni dispensación externa.</p>${boton("reglas", "Configurar parámetros de demostración")}<h3>Privacidad y almacenamiento</h3><p class="muted">Sin campos de nombres, documentos o contactos. Las instrucciones de la hoja del paciente son texto local y deben ser exclusivamente sintéticas. Los casos se generan con prefijo DEMO. Los datos se guardan en este navegador; no hay envío de casos, analítica, backend clínico o API generativa. Solo las búsquedas explícitas de medicamentos consultan CIMA (AEMPS), sin datos del caso. El almacenamiento local no ofrece las garantías de un sistema sanitario.</p><h3>Fuentes y autoría</h3><p class="muted">Autor: Dr. Ramón Morillo Verdugo. Adaptaciones CMO: Sociedad Española de Farmacia Hospitalaria (SEFH). Biblioteca y guion conservan sus metadatos originales. No se declara validación clínica ni licencia de terceros no otorgada.</p><div class="actions">${boton("exportar", "Exportar demostración JSON")}</div></section>`;
 }
 function render() {
   const route = location.hash.slice(1) || "inicio";
@@ -642,14 +642,9 @@ document.addEventListener("click", async (ev) => {
             `<input name="umbral" type="number" min="0" max="100" step="0.1" value="${reglas.umbral * 100}" required>`,
           ),
         (v) => {
-          const r = {
-            ...REGLAS,
-            ventana: +v.ventana,
-            umbral: +v.umbral / 100,
-            version: "demo-local-" + Date.now(),
-          };
-          validarReglas(r);
-          reglas = r;
+          // Versión determinista y estado «modificado, sin validación»; no depende del reloj (A03).
+          const r = reglasConParametros(+v.ventana, +v.umbral / 100);
+          reglas = { ...r };
           sessionStorage.setItem("vih.reglas", JSON.stringify(r));
           render();
         },
@@ -693,8 +688,9 @@ try {
   }
   const r = sessionStorage.getItem("vih.reglas");
   if (r) {
-    reglas = JSON.parse(r);
-    validarReglas(reglas);
+    // Se normaliza por si la sesión guardó una versión anterior (demo-local-<marca de tiempo>).
+    const g = JSON.parse(r);
+    reglas = { ...reglasConParametros(g.ventana, g.umbral) };
   }
   if (location.hash.startsWith("#panel/cmo/")) tab = "intervenciones";
   render();

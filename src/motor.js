@@ -1,13 +1,10 @@
 import { ultimoEvento, aplicable, fechaEfectiva } from "./temporal.js";
 import { dispensacionesVigentes } from "./dispensaciones.js";
+import { reglasPorDefecto, limitesParametros, estadoValidacionRegla } from "./reglas.js";
 /** Motor demostrativo v1. Fechas UTC; intervalos [inicio, fin). Sin inferencia de toma. */
 export const VERSION = "0.3.0";
-export const REGLAS = Object.freeze({
-  version: "demo-1",
-  ventana: 180,
-  umbral: 0.9,
-  validacion: "Pendiente de validación profesional",
-});
+/** Parámetros vigentes: proceden del registro versionado de reglas (src/reglas.js), no se definen aquí. */
+export const REGLAS = reglasPorDefecto();
 export const CATALOGOS = Object.freeze({
   TAR_A: ["A"],
   TAR_B: ["B"],
@@ -56,13 +53,14 @@ export function fecha(s) {
 }
 export const iso = (n) => new Date(n * 86400000).toISOString().slice(0, 10);
 export function validarReglas(r) {
+  const lim = limitesParametros();
   if (
     !Number.isInteger(r.ventana) ||
-    r.ventana < 1 ||
-    r.ventana > 730 ||
+    r.ventana < lim.ventana.min ||
+    r.ventana > lim.ventana.max ||
     !Number.isFinite(r.umbral) ||
-    r.umbral < 0 ||
-    r.umbral > 1
+    r.umbral < lim.umbral.min ||
+    r.umbral > lim.umbral.max
   )
     throw Error("Parámetros fuera de rango");
 }
@@ -259,7 +257,7 @@ export function alertas(p, fin, r = REGLAS) {
   return lista.map((x) => ({
     ...x,
     version: r.version,
-    estado: "Pendiente de validación profesional",
+    estado: estadoValidacionRegla(x.regla, r),
   }));
 }
 export function transicion(actual, siguiente) {

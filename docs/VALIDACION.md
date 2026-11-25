@@ -1,5 +1,14 @@
 # Validación técnica ejecutada
 
+## Actuación A03 · Registro de reglas versionado (2026-11-25)
+
+Ver `docs/REGISTRO_REGLAS.md`. No es validación clínica: **ninguna regla está validada**, el registro lo hace explícito.
+
+- `src/reglas.js`: fichas con versión, fuente, parámetros con unidad y rango, estado de validación y aprobación; `REGLAS` se deriva del registro con la misma forma y valores de antes (comprobado por prueba). Señales e informes llevan id, versión y estado procedentes del registro; los informes nuevos incluyen `reglas_aplicadas`.
+- Parámetros de sesión con versión determinista (`demo-1+mod(…)`) y estado «modificados, sin validación», en lugar de `demo-local-<reloj>`.
+- Incidencia detectada y corregida durante la verificación: el primer resumen de reglas en la hoja impresa hacía que el informe breve ocupara 2 páginas A4 (falló la comprobación de `navegador.mjs`); se compactó y el detalle por regla queda en el texto para historia y en el JSON.
+- `npm test`: 102 pruebas superadas (90 previas sin modificar sus expectativas + 12 de `registro-reglas.test.mjs`). `npm run check` correcto. `npm run test:browser` incluye ahora `pruebas/reglas.mjs`; los 7 recorridos superados.
+
 ## Actuaciones A06 y A04 de la auditoría estratégica (2026-11-25)
 
 Ver `docs/strategy/PRIORITIZED_BACKLOG.md`. No es validación clínica.
