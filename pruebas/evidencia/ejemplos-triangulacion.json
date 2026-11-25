@@ -1,0 +1,82 @@
+{
+  "formato": "vihconectados/ejemplos-triangulacion@1",
+  "estado_revision": "PROPUESTO por el auditor (actuación A15). Resultados esperados deducidos a mano de las tablas de la propuesta de triangulación y escritos antes de ejecutar nada. PENDIENTE de revisión por el comité clínico.",
+  "contexto_comun": {
+    "ventana": ["2027-01-01", "2027-03-02"],
+    "umbral_pdc": 0.9,
+    "umbral_carga_viral_copias_ml": 50,
+    "aviso": "Los dos umbrales son ILUSTRATIVOS. El PDC usa el valor de la regla demostrativa cobertura_demo@demo-1 (pendiente de validación). El 50 reproduce la definición de «virológicamente suprimido» (<50 copias/mL) que usan las fichas técnicas de Vocabria y Rekambys en su indicación; el valor operativo lo decide el comité. La analítica solo es comparable si su fecha cae dentro de la ventana del PDC [inicio, fin); el margen lo decide el comité."
+  },
+  "tipos_de_entrada": "pdc = [días cubiertos, días evaluables]; auto = si | no | no_explorado | null; vir = {copias, fecha} | null; asis = asistida | no_asistida | null",
+  "triangulacion": [
+    {"id": "T01", "par": "DISP×AUTO", "pdc": [58, 60], "auto": "no", "esperado": {"niveles": ["alta", "sin_dificultades"], "resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []}},
+    {"id": "T02", "par": "DISP×AUTO", "pdc": [58, 60], "auto": "si", "esperado": {"niveles": ["alta", "con_dificultades"], "resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-TOL", "H-ACC", "H-DISP-NO-TOMA"]}},
+    {"id": "T03", "par": "DISP×AUTO", "pdc": [30, 60], "auto": "no", "esperado": {"niveles": ["baja", "sin_dificultades"], "resultado": "discordante", "accion": "verificar_calidad_de_datos", "hipotesis": ["H-SUM-EXT", "H-CTX", "H-DAT", "H-AUTO-SESGO"]}},
+    {"id": "T04", "par": "DISP×AUTO", "pdc": [30, 60], "auto": "si", "esperado": {"niveles": ["baja", "con_dificultades"], "resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}},
+    {"id": "T05", "par": "DISP×AUTO", "pdc": [0, 0], "auto": "si", "esperado": {"niveles": ["no_evaluable", "con_dificultades"], "resultado": "insuficiente", "accion": "esperar_datos", "hipotesis": []}},
+    {"id": "T06", "par": "DISP×VIR", "pdc": [58, 60], "vir": {"copias": 20, "fecha": "2027-02-20"}, "esperado": {"niveles": ["alta", "suprimida"], "resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []}},
+    {"id": "T07", "par": "DISP×VIR", "pdc": [58, 60], "vir": {"copias": 5000, "fecha": "2027-02-20"}, "esperado": {"niveles": ["alta", "no_suprimida"], "resultado": "discordante", "accion": "revision_profesional", "hipotesis": ["H-VIR-OTRA", "H-DISP-NO-TOMA", "H-DAT"]}},
+    {"id": "T08", "par": "DISP×VIR", "pdc": [30, 60], "vir": {"copias": 20, "fecha": "2027-02-20"}, "esperado": {"niveles": ["baja", "suprimida"], "resultado": "discordante", "accion": "verificar_calidad_de_datos", "hipotesis": ["H-SUM-EXT", "H-CTX", "H-DAT", "H-VIR-NO-CONCL"]}},
+    {"id": "T09", "par": "DISP×VIR", "pdc": [30, 60], "vir": {"copias": 5000, "fecha": "2027-02-20"}, "esperado": {"niveles": ["baja", "no_suprimida"], "resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}},
+    {"id": "T10", "par": "DISP×VIR", "pdc": [58, 60], "vir": null, "esperado": {"niveles": ["alta", "ausente"], "resultado": "insuficiente", "accion": "esperar_datos", "hipotesis": []}},
+    {"id": "T11", "par": "DISP×VIR", "pdc": [58, 60], "vir": {"copias": 20, "fecha": "2026-11-15"}, "esperado": {"niveles": ["alta", "no_comparable"], "resultado": "no_comparable", "accion": "esperar_datos", "hipotesis": ["H-VIR-TIEMPO"]}},
+    {"id": "T12", "par": "DISP×ASIS", "pdc": [58, 60], "asis": "asistida", "esperado": {"niveles": ["alta", "asistida"], "resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []}},
+    {"id": "T13", "par": "DISP×ASIS", "pdc": [58, 60], "asis": "no_asistida", "esperado": {"niveles": ["alta", "no_asistida"], "resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-ACC", "H-CITA-OTRA"]}},
+    {"id": "T14", "par": "DISP×ASIS", "pdc": [30, 60], "asis": "asistida", "esperado": {"niveles": ["baja", "asistida"], "resultado": "discordante", "accion": "verificar_calidad_de_datos", "hipotesis": ["H-SUM-EXT", "H-CTX", "H-DAT"]}},
+    {"id": "T15", "par": "DISP×ASIS", "pdc": [30, 60], "asis": "no_asistida", "esperado": {"niveles": ["baja", "no_asistida"], "resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}},
+    {"id": "T16", "par": "DISP×ASIS", "pdc": [58, 60], "asis": null, "esperado": {"niveles": ["alta", "ausente"], "resultado": "insuficiente", "accion": "esperar_datos", "hipotesis": []}},
+    {"id": "T17", "par": "AUTO×VIR", "auto": "no", "vir": {"copias": 20, "fecha": "2027-02-20"}, "esperado": {"niveles": ["sin_dificultades", "suprimida"], "resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []}},
+    {"id": "T18", "par": "AUTO×VIR", "auto": "no", "vir": {"copias": 5000, "fecha": "2027-02-20"}, "esperado": {"niveles": ["sin_dificultades", "no_suprimida"], "resultado": "discordante", "accion": "revision_profesional", "hipotesis": ["H-AUTO-SESGO", "H-DIF-NO-REF", "H-VIR-OTRA"]}},
+    {"id": "T19", "par": "AUTO×VIR", "auto": "si", "vir": {"copias": 20, "fecha": "2027-02-20"}, "esperado": {"niveles": ["con_dificultades", "suprimida"], "resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-TOL", "H-VIR-NO-CONCL"]}},
+    {"id": "T20", "par": "AUTO×VIR", "auto": "si", "vir": {"copias": 5000, "fecha": "2027-02-20"}, "esperado": {"niveles": ["con_dificultades", "no_suprimida"], "resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}},
+    {"id": "T21", "par": "AUTO×VIR", "auto": "no_explorado", "vir": {"copias": 20, "fecha": "2027-02-20"}, "esperado": {"niveles": ["no_explorado", "suprimida"], "resultado": "insuficiente", "accion": "esperar_datos", "hipotesis": []}},
+    {"id": "T22", "par": "AUTO×VIR", "auto": "no", "vir": {"copias": 20, "fecha": "2026-11-15"}, "esperado": {"niveles": ["sin_dificultades", "no_comparable"], "resultado": "no_comparable", "accion": "esperar_datos", "hipotesis": ["H-VIR-TIEMPO"]}},
+    {"id": "T23", "par": "AUTO×ASIS", "auto": "no", "asis": "asistida", "esperado": {"niveles": ["sin_dificultades", "asistida"], "resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []}},
+    {"id": "T24", "par": "AUTO×ASIS", "auto": "no", "asis": "no_asistida", "esperado": {"niveles": ["sin_dificultades", "no_asistida"], "resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-CITA-OTRA", "H-DIF-NO-REF", "H-ACC"]}},
+    {"id": "T25", "par": "AUTO×ASIS", "auto": "si", "asis": "asistida", "esperado": {"niveles": ["con_dificultades", "asistida"], "resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-TOL", "H-ACC"]}},
+    {"id": "T26", "par": "AUTO×ASIS", "auto": "si", "asis": "no_asistida", "esperado": {"niveles": ["con_dificultades", "no_asistida"], "resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}},
+    {"id": "T27", "par": "AUTO×ASIS", "auto": "no", "asis": null, "esperado": {"niveles": ["sin_dificultades", "ausente"], "resultado": "insuficiente", "accion": "esperar_datos", "hipotesis": []}}
+  ],
+  "eventos_suministro": [
+    {
+      "id": "S01", "magnitud": "ingreso_hospitalario", "efecto": "excluye_del_denominador",
+      "descripcion": "Ingreso de 10 días: la dispensación ambulatoria de 20 días cubre 1–20 ene; el ingreso ocupa 21–30 ene",
+      "razonamiento": "Ventana 30 días hasta el 31 ene (1–30 ene). Sin el evento: 20 de 30. Con el ingreso [21 ene, 31 ene) se retiran 10 días del numerador y del denominador: 20 de 20.",
+      "episodio": {"fecha": "2027-01-01", "tar": "TAR_A"}, "corte": "2027-01-31", "ventana": 30,
+      "dispensaciones": [{"fecha": "2027-01-01", "componente": "A", "dias": 20}], "intervalo": ["2027-01-21", "2027-01-31"],
+      "esperado": {"sin_evento": [20, 30], "con_evento": [20, 20]}
+    },
+    {
+      "id": "S02", "magnitud": "suspension_prescrita", "efecto": "excluye_del_denominador",
+      "descripcion": "Suspensión prescrita de 10 días en medio del periodo",
+      "razonamiento": "Dispensaciones de 10 días el 1 y el 21 ene: cubren 1–10 y 21–30 ene. Sin el evento: 20 de 30. Se retiran los 10 días de la suspensión [11 ene, 21 ene), sin cobertura: 20 de 20.",
+      "episodio": {"fecha": "2027-01-01", "tar": "TAR_A"}, "corte": "2027-01-31", "ventana": 30,
+      "dispensaciones": [{"fecha": "2027-01-01", "componente": "A", "dias": 10}, {"fecha": "2027-01-21", "componente": "A", "dias": 10}], "intervalo": ["2027-01-11", "2027-01-21"],
+      "esperado": {"sin_evento": [20, 30], "con_evento": [20, 20]}
+    },
+    {
+      "id": "S03", "magnitud": "dias_suministro", "fuente": "dispensacion_externa", "efecto": "aporta_cobertura",
+      "descripcion": "Dispensación externa de 10 días el 11 ene (otra farmacia)",
+      "razonamiento": "Sin el evento solo cuenta la dispensación hospitalaria de 10 días (1–10 ene): 10 de 30. La externa cubre 11–20 ene: 20 de 30. Es una dispensación más; lo que cambia es su procedencia y su confianza.",
+      "episodio": {"fecha": "2027-01-01", "tar": "TAR_A"}, "corte": "2027-01-31", "ventana": 30,
+      "dispensaciones": [{"fecha": "2027-01-01", "componente": "A", "dias": 10}], "evento_como_dispensacion": {"fecha": "2027-01-11", "componente": "A", "dias": 10},
+      "esperado": {"sin_evento": [10, 30], "con_evento": [20, 30]}
+    },
+    {
+      "id": "S04", "magnitud": "stock_inicial", "efecto": "aporta_cobertura",
+      "descripcion": "El paciente empieza con 15 días de existencias; la primera dispensación es el 16 ene",
+      "razonamiento": "Sin el evento solo cuenta la dispensación del 16 ene (15 días: 16–30 ene): 15 de 30. Con 15 días de existencias desde el 1 ene cubre 1–15 ene: 30 de 30.",
+      "episodio": {"fecha": "2027-01-01", "tar": "TAR_A"}, "corte": "2027-01-31", "ventana": 30,
+      "dispensaciones": [{"fecha": "2027-01-16", "componente": "A", "dias": 15}], "evento_como_dispensacion": {"fecha": "2027-01-01", "componente": "A", "dias": 15},
+      "esperado": {"sin_evento": [15, 30], "con_evento": [30, 30]}
+    },
+    {
+      "id": "S05", "magnitud": "fin_de_seguimiento", "efecto": "cierra_episodio",
+      "descripcion": "Traslado el 21 ene: el episodio termina ese día",
+      "razonamiento": "Suministro de 20 días (1–20 ene). Sin el evento: 20 de 30 (1–30 ene). Con el cierre, el seguimiento termina el 21 ene: se retiran los 10 días [21 ene, 31 ene) y quedan 20 de 20.",
+      "episodio": {"fecha": "2027-01-01", "tar": "TAR_A"}, "corte": "2027-01-31", "ventana": 30,
+      "dispensaciones": [{"fecha": "2027-01-01", "componente": "A", "dias": 20}], "intervalo": ["2027-01-21", "2027-01-31"],
+      "esperado": {"sin_evento": [20, 30], "con_evento": [20, 20]}
+    }
+  ]
+}

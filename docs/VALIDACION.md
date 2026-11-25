@@ -1,5 +1,15 @@
 # Validación técnica ejecutada
 
+## Actuación A15 · Modelo de evidencia y triangulación (2026-11-25)
+
+Ver `docs/strategy/EVIDENCE_TRIANGULATION_SPEC.md`. **Propuesta sin aprobar; no hay cambios en el comportamiento de la aplicación.** No es validación clínica.
+
+- `src/esquema-evidencia.js` (esquema cerrado de afirmación, sin dependencias, no conectado a la aplicación) y los datos de la propuesta en `pruebas/evidencia/`: matriz de 5 pares, 12 hipótesis, 5 acciones, 8 eventos que alteran el suministro, 27 ejemplos de triangulación, 5 ejemplos numéricos y 15 afirmaciones.
+- Los resultados esperados de los ejemplos se escribieron a mano antes de ejecutar. Los números de los eventos de suministro «sin evento» coinciden con el motor real; los efectos de exclusión usan una semántica **propuesta** que el motor no implementa.
+- Se probó la sensibilidad con 11 defectos introducidos en una copia fuera del repositorio: 10 detectados; el undécimo (intervalo obligatorio de ciertos eventos) no estaba cubierto y se añadió su prueba.
+- `npm test`: 140 pruebas superadas (125 previas + 15 de `evidencia.test.mjs`). `npm run check` correcto.
+- Pendiente: aprobación de la matriz y de las 13 decisiones por el comité clínico.
+
 ## Actuación A13 · Especificación clínica LA-TAR (2026-11-25)
 
 Ver `docs/strategy/LA_TAR_CLINICAL_SPEC.md`. **Documento sin aprobar; no hay código nuevo en la aplicación.** No es validación clínica.
