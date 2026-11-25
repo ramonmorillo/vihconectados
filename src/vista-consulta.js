@@ -1,12 +1,11 @@
 import { PROBLEMAS, RESPONSABLES, RESULTADOS, contextoConsulta, consultasHasta, agendaConsultas, textoPlan } from './consulta.js';
-import { registrarConsulta, registrarSeguimiento } from './comandos-consulta.js';
 import { EXPERIENCIA } from './motor.js';
 import { ultimoEvento, aplicable, nivelHasta } from './temporal.js';
 import { METODOS_ADHERENCIA, RESULTADOS_ADHERENCIA, textoEvaluacionAdherencia } from './adherencia.js';
 import { esc } from './vista-informes.js';
 const opciones=(xs,valor='')=>xs.map(x=>`<option value="${esc(x)}" ${x===valor?'selected':''}>${esc(x)}</option>`).join('');
 const etiquetas={barrera:'Barreras',dificultad:'Dificultad de toma',efecto:'Efectos referidos',carga:'Carga percibida',preferencia:'Preferencia de seguimiento'};
-export function abrirConsultaGuiada({db,id,fin,reglas,biblioteca,modal,guardar}) {
+export function abrirConsultaGuiada({db,id,fin,reglas,biblioteca,modal,ejecutar}) {
   const p=db.pacientes.find(p=>p.id===id);
   if(!p)throw Error('Caso inexistente.');
   const actuaciones=p.eventos.filter(e=>e.tipo==='actuacion');
@@ -19,7 +18,7 @@ export function abrirConsultaGuiada({db,id,fin,reglas,biblioteca,modal,guardar})
     if(v.contexto_revisado!=='on')throw Error('Confirme la revisión del contexto.');
     const experiencia=Object.fromEntries(Object.keys(EXPERIENCIA).map(k=>[k,v['exp_'+k]]));
     const adherencia=v.nueva_adherencia==='on'?{periodo_inicio:v.periodo_inicio,periodo_fin:v.periodo_fin,metodo:v.metodo,resultado:v.resultado_referido,porcentaje:v.porcentaje===''?null:Number(v.porcentaje)}:null;
-    guardar(registrarConsulta(db,id,{...v,experiencia,adherencia,revisado:v.revisado==='on'},reglas));
+    ejecutar({tipo:'registrar_consulta',paciente:id,datos:{...v,experiencia,adherencia,revisado:v.revisado==='on'},reglas:{...reglas}});
     return 'Consulta y plan guardados. La nueva actuación queda pendiente y el objetivo está pendiente de evaluar.';
   });
   const $=id=>document.getElementById(id),form=$('formulario').querySelector('form'),pasos=[...form.querySelectorAll('[data-paso]')],save=form.querySelector('button[type=submit]') || form.querySelector('button:not([type])');
@@ -59,11 +58,11 @@ export function abrirConsultaGuiada({db,id,fin,reglas,biblioteca,modal,guardar})
   form.addEventListener('submit',e=>{if(paso!==3){e.preventDefault();e.stopImmediatePropagation();}},true);
   alternar();actualizar();mostrar();
 }
-export function abrirSeguimientoConsulta({db,id,consulta,fin,modal,guardar}) {
+export function abrirSeguimientoConsulta({db,id,consulta,fin,modal,ejecutar}) {
   const p=db.pacientes.find(p=>p.id===id),c=consultasHasta(p,fin).find(c=>c.id===consulta);
   if(!c)throw Error('Plan no aplicable al corte.');
   if(!c.modificable)throw Error('Hay seguimientos posteriores. Avance el corte para registrar uno nuevo.');
-  modal('Registrar seguimiento del plan', `<p>${esc(textoPlan(c))}</p><label>Fecha efectiva de seguimiento<input name="fecha" type="date" value="${fin}" required></label><label>Estado del plan<select name="estado" id="estadoPlan"><option value="en_curso">Mantener en curso</option><option value="cerrada">Cerrar este plan</option></select></label><label>Resultado del objetivo<select name="resultado">${opciones(RESULTADOS)}</select></label><label>Observaciones y fundamento (solo sintético)<textarea name="observaciones" maxlength="500" required></textarea></label><label>Responsable funcional<select name="responsable">${opciones(RESPONSABLES,c.responsable)}</select></label><label id="proximaRevisionPlan">Próxima revisión acordada<input name="revision" type="date" value="${fin}" required></label><label class="check-line"><input name="marcar_realizada" type="checkbox" ${c.actuacion_realizada?'disabled':''}> Confirmo que la actuación se ha realizado (independiente del resultado del objetivo)</label>`,v=>guardar(registrarSeguimiento(db,id,{...v,consulta,marcar_realizada:v.marcar_realizada==='on'})));
+  modal('Registrar seguimiento del plan', `<p>${esc(textoPlan(c))}</p><label>Fecha efectiva de seguimiento<input name="fecha" type="date" value="${fin}" required></label><label>Estado del plan<select name="estado" id="estadoPlan"><option value="en_curso">Mantener en curso</option><option value="cerrada">Cerrar este plan</option></select></label><label>Resultado del objetivo<select name="resultado">${opciones(RESULTADOS)}</select></label><label>Observaciones y fundamento (solo sintético)<textarea name="observaciones" maxlength="500" required></textarea></label><label>Responsable funcional<select name="responsable">${opciones(RESPONSABLES,c.responsable)}</select></label><label id="proximaRevisionPlan">Próxima revisión acordada<input name="revision" type="date" value="${fin}" required></label><label class="check-line"><input name="marcar_realizada" type="checkbox" ${c.actuacion_realizada?'disabled':''}> Confirmo que la actuación se ha realizado (independiente del resultado del objetivo)</label>`,v=>ejecutar({tipo:'registrar_seguimiento',paciente:id,datos:{...v,consulta,marcar_realizada:v.marcar_realizada==='on'}}));
   document.getElementById('estadoPlan').onchange=ev=>{const cerrado=ev.target.value==='cerrada',el=document.getElementById('proximaRevisionPlan');el.hidden=cerrado;el.querySelector('input').disabled=cerrado;};
 }
 function tarjeta(c,paciente='') {

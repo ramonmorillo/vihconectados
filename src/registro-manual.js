@@ -1,5 +1,7 @@
 import { crearGuardadoConciliado } from "./revision-datos.js";
-import { episodios, componentes, nombreTar, prepararDispensacionManual, validarDispensacion } from './motor.js';
+import { episodios, componentes, nombreTar } from './motor.js';
+import { entradasManuales } from './conciliacion.js';
+import { construirEvaluacionManual } from './eventos-formulario.js';
 import { esc } from './vista-informes.js';
 import { METODOS_ADHERENCIA, RESULTADOS_ADHERENCIA, evaluacionesAdherencia, textoEvaluacionAdherencia } from './adherencia.js';
 export function abrirDispensacionManual({ p, fin, modal, guardar }) {
@@ -9,10 +11,7 @@ export function abrirDispensacionManual({ p, fin, modal, guardar }) {
   const guardarPlan=crearGuardadoConciliado(p,guardar);
   modal('Registrar dispensación manual', `<p class="notice">Días de suministro declarados, no dosis ni tomas. Use solo datos sintéticos. Se aplica la misma validación y detección de duplicados que al CSV.</p><label>Episodio de TAR oral<select name="episodio" id="episodioManual">${eps.map(ep=>`<option value="${esc(ep.id)}" ${ep.id===defecto.id?'selected':''}>${esc(ep.fecha)} · ${esc(nombreTar(ep))}</option>`).join('')}</select></label><label>Fecha de dispensación<input name="fecha" type="date" value="${fin}" required></label><label>Origen (opcional, solo si hay identificadores)<input name="origen" maxlength="80" placeholder="SISTEMA-DEMO"></label><div id="suministrosManuales"></div><div id="conciliacionDispensaciones"></div><p class="muted">Indique los días de los medicamentos dispensados y deje en blanco los restantes. No se deducen días del envase. En combinaciones orales, el PDC exige cobertura simultánea de todos los componentes.</p>`, v=>{
     const ep=eps.find(e=>e.id===v.episodio);
-    const entradas=componentes(ep).map((componente,i)=>({fecha:v.fecha,episodio:v.episodio,componente,linea:i+2,dias:v['dias'+i] === '' ? null : Number(v['dias'+i]),...(v['id_origen'+i] || v.origen?{origen:v.origen,id_origen:v['id_origen'+i]}:{})})).filter(f=>f.dias!==null);
-    if (!entradas.length) throw Error('Indique días para al menos un medicamento.');
-    entradas.forEach(f=>validarDispensacion(p,f));
-    return guardarPlan(entradas,v);
+    return guardarPlan(entradasManuales(p,ep,v),v);
   });
   const selector=document.getElementById('episodioManual');
   const dibujar=()=>{
@@ -26,7 +25,7 @@ export function abrirDispensacionManual({ p, fin, modal, guardar }) {
 }
 export function abrirEvaluacionManual({fin,modal,guardar}) {
   const opciones=arr=>arr.map(s=>`<option>${esc(s)}</option>`).join('');
-  modal('Registrar valoración manual de adherencia', `<p class="notice">Valoración referida o revisada por el profesional, separada de la cobertura de dispensación. El porcentaje es opcional y no se calcula a partir de la entrevista ni del PDC.</p><label>Fecha de evaluación<input type="date" name="fecha" value="${fin}" required></label><label>Inicio del periodo<input type="date" name="periodo_inicio" required></label><label>Fin del periodo (excluido)<input type="date" name="periodo_fin" value="${fin}" required></label><label>Método<select name="metodo">${opciones(METODOS_ADHERENCIA)}</select></label><label>Resultado referido<select name="resultado">${opciones(RESULTADOS_ADHERENCIA)}</select></label><label>Porcentaje declarado (opcional, 0–100)<input type="number" name="porcentaje" min="0" max="100" step="0.1" inputmode="decimal"></label><p class="muted">No es un cuestionario validado ni confirmación objetiva de toma. No se generan umbrales, alertas ni diagnósticos a partir de esta anotación.</p>`,v=>guardar({tipo:'evaluacion_adherencia',fecha:v.fecha,periodo_inicio:v.periodo_inicio,periodo_fin:v.periodo_fin,metodo:v.metodo,resultado:v.resultado,porcentaje:v.porcentaje === '' ? null : Number(v.porcentaje)}));
+  modal('Registrar valoración manual de adherencia', `<p class="notice">Valoración referida o revisada por el profesional, separada de la cobertura de dispensación. El porcentaje es opcional y no se calcula a partir de la entrevista ni del PDC.</p><label>Fecha de evaluación<input type="date" name="fecha" value="${fin}" required></label><label>Inicio del periodo<input type="date" name="periodo_inicio" required></label><label>Fin del periodo (excluido)<input type="date" name="periodo_fin" value="${fin}" required></label><label>Método<select name="metodo">${opciones(METODOS_ADHERENCIA)}</select></label><label>Resultado referido<select name="resultado">${opciones(RESULTADOS_ADHERENCIA)}</select></label><label>Porcentaje declarado (opcional, 0–100)<input type="number" name="porcentaje" min="0" max="100" step="0.1" inputmode="decimal"></label><p class="muted">No es un cuestionario validado ni confirmación objetiva de toma. No se generan umbrales, alertas ni diagnósticos a partir de esta anotación.</p>`,v=>guardar(construirEvaluacionManual(v)));
 }
 export function vistaEvaluacionesManuales(p, fin) {
   const es=evaluacionesAdherencia(p,fin);

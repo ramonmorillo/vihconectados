@@ -70,7 +70,7 @@ Obtenga el UUID y componentes válidos mediante **Descargar CSV de ejemplo** en 
 ## Arquitectura
 
 - `src/motor.js`: funciones puras de cobertura, CSV, señales y transiciones.
-- `src/almacen.js`: comandos que anexan eventos y puerto `leer()/guardar()` para sustituir el adaptador local.
+- `src/almacen.js`: comando `anexar` (esquemas cerrados de evento) y almacenamiento de bajo nivel. **Capas y puerto por comandos** (`consultar()` / `ejecutar(comando)`): `src/comandos.js`, `src/repositorio.js` y [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md); la lógica de formularios está en `src/conciliacion.js`, `src/eventos-formulario.js` y `src/seleccion-tar.js`.
 - `src/informes.js`: instantáneas y texto para historia; `src/vista-informes.js` y `src/informes.css`: composición A4 e impresión.
 - `src/cima.js` y `src/medicacion.js`: adaptador AEMPS y selección del TAR.
 - `src/recursos.js`: enlaces y atribución de MAPEX-ADHEFAR Hub.

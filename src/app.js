@@ -18,14 +18,8 @@ import {
   estadoComunicacion,
 } from "./motor.js";
 import { reglasConParametros, fichasAplicadas } from "./reglas.js";
-import { RepositorioDemo, crearPaciente, anexar } from "./almacen.js";
-import {
-  demo,
-  ESCENARIOS,
-  VERSION_COHORTE,
-  crearCasoEscenario,
-  incorporarCohorte,
-} from "./demo.js";
+import { RepositorioLocal } from "./repositorio.js";
+import { ESCENARIOS, VERSION_COHORTE } from "./demo.js";
 import { portada, hospitales } from "./portada.js";
 import { paginaLegal, enlacesLegales, AUTORIA } from "./legal.js";
 import { AccesoDemostracion } from "./acceso.js";
@@ -48,7 +42,7 @@ const $ = (id) => document.getElementById(id),
           "'": "&#39;",
         })[c],
     );
-const repo = new RepositorioDemo(localStorage);
+const repo = new RepositorioLocal(localStorage);
 const proveedorAcceso = new AccesoDemostracion();
 const contextoAcceso = await proveedorAcceso.obtenerContexto();
 $("enlacesLegales").innerHTML = enlacesLegales();
@@ -81,13 +75,15 @@ const select = (name, arr) =>
   `<select name="${name}">${arr.map((x) => `<option value="${esc(x)}">${esc(x.replaceAll("_", " "))}</option>`).join("")}</select>`;
 const nivelCorte = p => nivelHasta(p, fin) || "Sin dato";
 const paciente = () => db.pacientes.find((p) => p.id === seleccion);
-function guardar(next) {
-  repo.guardar(next);
-  db = next;
+/** Toda escritura es un comando (src/comandos.js); la base en memoria es solo el modelo de lectura. */
+function ejecutar(comando) {
+  const { db: siguiente, resultado } = repo.ejecutar(comando);
+  db = siguiente;
   render();
+  return resultado;
 }
 function add(e) {
-  guardar(anexar(db, seleccion, e));
+  return ejecutar({ tipo: "anexar_evento", paciente: seleccion, evento: e });
 }
 /** Informa de una migración de formato o de eventos guardados que no cumplen el esquema (se conservan sin modificar). */
 function avisoDeLectura(dx) {
@@ -449,12 +445,12 @@ $("nuevo").onclick = () => {
       ) +
       '<p class="muted">Los escenarios traen un nivel, visitas y tratamientos ficticios. No se copian datos de otro caso ni se consulta CIMA automáticamente.</p>',
     (v) => {
-      guardar(
+      const r = ejecutar(
         v.perfil === "blanco"
-          ? crearPaciente(db, v.nivel, fin)
-          : crearCasoEscenario(db, v.perfil),
+          ? { tipo: "crear_caso", nivel: v.nivel, fecha_nivel: fin }
+          : { tipo: "crear_caso_escenario", escenario: v.perfil },
       );
-      location.hash = "caso/" + db.pacientes.at(-1).id;
+      location.hash = "caso/" + r.paciente;
       tab = "resumen";
     },
   );
@@ -477,18 +473,17 @@ document.addEventListener("click", async (ev) => {
     id = b.dataset.id,
     p = paciente();
   try {
-    if (a === "consulta-guiada") abrirConsultaGuiada({ db, id:seleccion, fin, reglas, biblioteca, modal, guardar });
+    if (a === "consulta-guiada") abrirConsultaGuiada({ db, id:seleccion, fin, reglas, biblioteca, modal, ejecutar });
     if (a === "seguimiento-consulta") {
       const [pid,cid]=id.includes("|")?id.split("|"):[seleccion,id];
-      abrirSeguimientoConsulta({db,id:pid,consulta:cid,fin,modal,guardar});
+      abrirSeguimientoConsulta({db,id:pid,consulta:cid,fin,modal,ejecutar});
     }
     if (a === "desktop-biblioteca") { tab = "intervenciones"; render(); $("biblioteca-cmo").scrollIntoView(); }
     if (a === "desktop-informes") { tab = "informes"; render(); }
     if (a === "actualizar-cohorte") {
-      const prev = db.pacientes.length;
-      guardar(incorporarCohorte(db));
+      const { anadidos } = ejecutar({ tipo: "actualizar_cohorte" });
       flash(
-        `${db.pacientes.length - prev} casos nuevos añadidos; el histórico anterior se conserva.`,
+        `${anadidos} casos nuevos añadidos; el histórico anterior se conserva.`,
       );
     }
     if (a === "abrir") {
@@ -622,14 +617,16 @@ document.addEventListener("click", async (ev) => {
         i = pp.eventos.find((e) => e.id === iid);
       if (a === "estado") {
         const s = estadoComunicacion(pp, iid, fin);
-        guardar(
-          anexar(db, pid, {
+        ejecutar({
+          tipo: "anexar_evento",
+          paciente: pid,
+          evento: {
             tipo: "estado_comunicacion",
             fecha: fin,
             informe: iid,
             estado: ESTADOS[ESTADOS.indexOf(s) + 1],
-          }),
-        );
+          },
+        });
       }
       if (a === "json-informe") descargar(i, `${pid}-informe.json`);
       if (a === "ver-informe") mostrarInforme(i);
@@ -693,11 +690,8 @@ try {
       return r.json();
     }),
   );
-  db = repo.leer();
-  if (!localStorage.getItem(repo.key)) {
-    db = demo();
-    repo.guardar(db);
-  }
+  db = repo.consultar();
+  if (!repo.hayDatos()) db = repo.ejecutar({ tipo: "sembrar_demo" }).db;
   const r = sessionStorage.getItem("vih.reglas");
   if (r) {
     // Se normaliza por si la sesión guardó una versión anterior (demo-local-<marca de tiempo>).

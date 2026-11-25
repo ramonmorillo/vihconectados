@@ -1,9 +1,10 @@
-import { buscar, ficha, CIMA_WEB, modalidadTar } from "./cima.js";
+import { buscar, ficha, CIMA_WEB } from "./cima.js";
+import { crearSeleccionTar } from "./seleccion-tar.js";
 import { esc } from "./vista-informes.js";
 /** Selección explícita, solo consulta de catálogo; nunca se transmiten datos del caso. */
 export function abrirSeleccionTar({ fin, modal, guardar }) {
-  let seleccion = [],
-    resultados = [],
+  const seleccion = crearSeleccionTar();
+  let resultados = [],
     consulta = 0;
   modal(
     "Registrar TAR desde CIMA",
@@ -21,16 +22,7 @@ export function abrirSeleccionTar({ fin, modal, guardar }) {
     <label class="check-line"><input type="checkbox" name="confirmado" required> He revisado que la selección corresponde al TAR completo del caso ficticio.</label>
     <p class="muted">El nuevo episodio conserva los tratamientos anteriores y corta el arrastre de sobrantes. Seleccionar un medicamento no constituye una prescripción.</p>`,
     (v) => {
-      if (!seleccion.length)
-        throw Error("Añada al menos un medicamento desde CIMA.");
-      guardar({
-        tipo: "tratamiento",
-        fecha: v.fecha,
-        tar: "CIMA",
-        medicamentos: seleccion,
-        modalidad: modalidadTar(seleccion),
-        confirmado: v.confirmado === "on",
-      });
+      guardar(seleccion.eventoTratamiento({ fecha: v.fecha, confirmado: v.confirmado === "on" }));
     },
   );
   const $ = (id) => document.getElementById(id),
@@ -38,10 +30,11 @@ export function abrirSeleccionTar({ fin, modal, guardar }) {
   const vigente = () =>
     form.isConnected && document.getElementById("modal").open;
   const dibujar = () => {
-    $("otroMedicamento").hidden = !seleccion.length;
+    $("otroMedicamento").hidden = !seleccion.lista().length;
     form.querySelector("[name=confirmado]").checked = false;
     $("seleccionCima").innerHTML =
       seleccion
+        .lista()
         .map(
           (m, i) =>
             `<div class="selected-med"><div><strong>${i+1}. ${esc(m.nombre)}</strong><p class="muted">${esc(m.vias.join(" · "))} · ${esc(m.presentacion)} · CN ${esc(m.cn)}<br>Registro ${esc(m.nregistro)} · Consultado ${esc(m.consultado.slice(0, 10))}</p></div><button type="button" data-quitar-cima="${i}" aria-label="Quitar ${esc(m.nombre)}">Quitar</button></div>`,
@@ -95,7 +88,7 @@ export function abrirSeleccionTar({ fin, modal, guardar }) {
   form.addEventListener("click", async (ev) => {
     const quitar = ev.target.closest("[data-quitar-cima]");
     if (quitar) {
-      seleccion.splice(+quitar.dataset.quitarCima, 1);
+      seleccion.quitar(+quitar.dataset.quitarCima);
       dibujar();
       return;
     }
@@ -116,23 +109,9 @@ export function abrirSeleccionTar({ fin, modal, guardar }) {
       }
     }
     if (ev.target.closest("#anadirCima") && fichaActiva) {
-      if (seleccion.some((m) => m.nregistro === fichaActiva.nregistro)) {
-        $("estadoCima").textContent = "Ese medicamento ya está seleccionado.";
-        return;
-      }
-      if (seleccion.length >= 8) {
-        $("estadoCima").textContent = "Máximo 8 medicamentos por episodio.";
-        return;
-      }
-      const p = fichaActiva.presentaciones[+$("presentacionCima").value];
-      const { presentaciones, ...f } = fichaActiva;
-      const nuevo = { ...f, cn: p.cn, presentacion: p.nombre };
-      try { modalidadTar([...seleccion, nuevo]); }
-      catch (e) { $("estadoCima").textContent = e.message; return; }
-      seleccion.push(nuevo);
-      dibujar();
-      $("estadoCima").textContent =
-        "Medicamento añadido. Puede buscar otro o confirmar el TAR completo.";
+      const r = seleccion.anadir(fichaActiva, +$("presentacionCima").value);
+      if (r.ok) dibujar();
+      $("estadoCima").textContent = r.mensaje;
     }
   });
 }

@@ -1,5 +1,16 @@
 # Validación técnica ejecutada
 
+## Actuación A07 · Dominio/interfaz y puerto por comandos (2026-11-25)
+
+Ver `docs/ARQUITECTURA.md`. Reorganización **sin cambio de comportamiento visible**. No es validación clínica ni de seguridad.
+
+- Lógica de formularios movida a módulos puros (`conciliacion.js`, `eventos-formulario.js`, `seleccion-tar.js`); puerto `consultar()/ejecutar(comando)` con 7 comandos de esquema cerrado (`comandos.js`, `repositorio.js`); `app.js` y `vista-consulta.js` escriben solo por comandos.
+- `pruebas/arquitectura.test.mjs` impone la regla de capas por análisis del texto fuente (todo módulo nuevo es de dominio salvo lista explícita de interfaz).
+- Mejora comprobada por prueba: con el modelo anterior, dos sesiones sobre el mismo almacenamiento perdían eventos (la segunda escribía la base completa que tenía en memoria); con comandos se conservan ambos.
+- Sensibilidad: 10 defectos introducidos en una copia fuera del repositorio (acceso al navegador desde el dominio, dependencia de dominio a vista, la interfaz vuelve a importar validación o escritura, `repo.guardar`, el puerto trabaja sobre una copia, escribe antes de validar, vuelve a exponer `guardar`, comandos sin esquema cerrado). **Se detectan los 10**; el de «escribe antes de validar» no se detectaba al comparar solo el contenido guardado y se reforzó contando las escrituras.
+- `npm test`: 170 pruebas superadas (140 previas sin modificar + 30 nuevas). `npm run check` correcto. Los 8 recorridos de navegador superados.
+- Pendiente (fuera de A07): dividir `app.js`; validación y concurrencia en servidor (B01).
+
 ## Actuación A15 · Modelo de evidencia y triangulación (2026-11-25)
 
 Ver `docs/strategy/EVIDENCE_TRIANGULATION_SPEC.md`. **Propuesta sin aprobar; no hay cambios en el comportamiento de la aplicación.** No es validación clínica.

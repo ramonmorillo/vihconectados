@@ -72,6 +72,7 @@ Las actuaciones A02–A21 no necesitan que se haya decidido la ruta regulatoria,
   4. El PDC y los informes históricos no cambian.
 
 ### A07 · Separar dominio de interfaz y definir puerto de comandos
+> **Estado 2026-11-25: IMPLEMENTADO Y VERIFICADO** (170 pruebas unitarias y 8 recorridos de navegador, sin modificar expectativas previas). Cumple los cinco criterios. Además corrige una **actualización perdida** entre sesiones que existía con `leer()/guardar(db)`. **No** divide `app.js` (≈ 700 líneas) ni mueve la validación a servidor. Ver `docs/ARQUITECTURA.md`.
 - **Impacto:** Habilitante. · **Esfuerzo:** M–L. · **Prioridad:** P1 · **Tipo:** refactor
 - **Dependencias:** A05 recomendable. · **Riesgo:** medio (regresiones) [F-02]. Se mitiga con las 6 pruebas de navegador y las 55 unitarias.
 - **Aceptación:** (1) `revision-datos.js`, `registro-manual.js` y `medicacion.js` no contienen lógica de dominio que use `document`/`window`; (2) prueba automática que verifique que los módulos de dominio no referencian `document`, `window` ni `localStorage`; (3) el planificador de conciliación tiene pruebas unitarias propias; (4) el puerto es por **comandos** (no `leer()/guardar(db)`), con un adaptador `localStorage` que mantiene el modo demostración; (5) los seis guiones de navegador pasan.
