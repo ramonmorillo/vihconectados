@@ -18,9 +18,10 @@ import {
 } from "./motor.js";
 const copia = (x) => structuredClone(x);
 export const vacio = () => ({ formato: "vihconectados/demo@1", pacientes: [] });
-export function crearPaciente(db, nivel = "3", fechaNivel) {
+/** Sin nivel indicado el caso queda sin estratificar: no se asigna ningún nivel por defecto. */
+export function crearPaciente(db, nivel = null, fechaNivel) {
   if (fechaNivel) fecha(fechaNivel);
-  if (!["1", "2", "3"].includes(nivel)) throw Error("Nivel CMO inválido");
+  if (nivel !== null && !["1", "2", "3"].includes(nivel)) throw Error("Nivel CMO inválido");
   const n = db.pacientes.length + 1,
     id = `DEMO-${String(n).padStart(3, "0")}`;
   return {
@@ -30,7 +31,7 @@ export function crearPaciente(db, nivel = "3", fechaNivel) {
       {
         id,
         sintetico: true,
-        eventos: [
+        eventos: nivel === null ? [] : [
           {
             id: crypto.randomUUID(),
             tipo: "nivel",

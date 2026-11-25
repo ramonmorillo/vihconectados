@@ -11,7 +11,6 @@ import {
   nombreTar,
   EXPERIENCIA,
   ESTADOS,
-  nivel,
   episodios,
   cobertura,
   alertas,

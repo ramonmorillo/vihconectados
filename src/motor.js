@@ -83,9 +83,6 @@ export function nombreTar(ep) {
     ep?.medicamentos?.map((m) => m.nombre).join(" + ") || ep?.tar || "Sin TAR"
   );
 }
-export function nivel(p) {
-  return p.eventos.filter((e) => e.tipo === "nivel").at(-1)?.nivel || "3";
-}
 export function dispensaciones(p) {
   return dispensacionesVigentes(p);
 }
@@ -210,7 +207,7 @@ export function alertas(p, fin, r = REGLAS) {
   const c = cobertura(p, fin, r),
     lista = [];
   if (c.excluidos.length)
-    lista.push({ regla: "tar_inyectable_no_evaluable", texto: "El periodo de TAR intramuscular se excluye del PDC oral. No se evalúan asistencia, administración ni ventanas de inyección." });
+    lista.push({ regla: "tar_inyectable_no_evaluable", texto: "TAR intramuscular NO MONITORIZADO: el periodo se excluye del PDC oral y no se evalúan asistencia, administración ni ventanas de inyección. Una administración perdida o retrasada no generará señal; requiere seguimiento profesional manual." });
   if (c.pdc === null && !c.excluidos.length)
     lista.push({
       regla: "sin_datos",

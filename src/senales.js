@@ -7,7 +7,7 @@ export const ESTADOS_SENAL = ESTADOS;
 export function evaluarSenales(p, fin, reglas) {
   const c=cobertura(p,fin,reglas);
   return alertas(p,fin,reglas).map(a=>{
-    const categoria=['sin_datos','tar_inyectable_no_evaluable'].includes(a.regla)?'aviso':a.regla==='datos_fuera_episodio'?'datos':'asistencial';
+    const categoria=a.regla==='tar_inyectable_no_evaluable'?'no_monitorizado':a.regla==='sin_datos'?'aviso':a.regla==='datos_fuera_episodio'?'datos':'asistencial';
     const evidencia=canonico({regla:a.regla,reglas:c.reglas,inicio:c.inicio,fin,detalle:c.detalle,excluidos:c.excluidos,
       tratamientos:episodios(p).filter(e=>e.fecha<=fin).map(e=>e.id),
       suministros:dispensaciones(p).filter(f=>f.fecha<fin).map(f=>[f.referencia,f.fecha,f.episodio,f.componente,f.dias]),

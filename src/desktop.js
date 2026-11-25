@@ -1,7 +1,7 @@
 import { tratamientoHasta, nivelHasta, aplicable } from "./temporal.js";
 import { pendientesSenales, evaluarSenales } from "./senales.js";
 import { ultimaEvaluacionAdherencia, textoEvaluacionAdherencia } from "./adherencia.js";
-import { cobertura, alertas, nivel, episodios, nombreTar, estadoComunicacion } from './motor.js';
+import { cobertura, alertas, episodios, nombreTar, estadoComunicacion } from './motor.js';
 export const escapar = (valor) => String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pct = c => c.pdc === null ? (c.excluidos?.length ? 'No aplicable' : 'Sin cálculo') : new Intl.NumberFormat('es', {style:'percent', maximumFractionDigits:1}).format(c.pdc);
 export function marcoMetodologico() {
