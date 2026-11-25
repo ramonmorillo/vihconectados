@@ -12,6 +12,10 @@ Casos sintéticos con **resultado esperado deducido a mano** de la definición o
 | Se ejecuta con `npm test` | Cumplido |
 | Discrepancias registradas con decisión del CCR | Sin discrepancias hasta la fecha |
 
+## Familia LA-TAR
+
+Los casos de TAR de acción prolongada están en `la-tar.json` (25 casos propuestos, calculados a mano desde las fichas técnicas de Vocabria y Rekambys). **No tienen ejecutor**: el módulo LA-TAR no existe (B08). `pruebas/corpus-la-tar.test.mjs` solo comprueba la coherencia de los esperados con una aritmética de calendario independiente. Requieren la misma revisión independiente y la aprobación del comité (`docs/strategy/LA_TAR_CLINICAL_SPEC.md`).
+
 ## Qué demuestra y qué no
 
 - **Demuestra** que, para estos 26 escenarios, el motor devuelve exactamente lo que dice la definición operativa escrita, y que un segundo algoritmo (simulación de stock día a día) coincide con el cálculo manual.

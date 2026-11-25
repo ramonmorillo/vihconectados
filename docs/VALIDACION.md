@@ -1,5 +1,13 @@
 # Validación técnica ejecutada
 
+## Actuación A13 · Especificación clínica LA-TAR (2026-11-25)
+
+Ver `docs/strategy/LA_TAR_CLINICAL_SPEC.md`. **Documento sin aprobar; no hay código nuevo en la aplicación.** No es validación clínica.
+
+- Valores tomados de las fichas técnicas oficiales (EMA: Vocabria 114 pp., Rekambys 77 pp.; AEMPS/CIMA: registros 1201481003 y 1201482002), descargadas y leídas el 2026-11-25 y contrastadas entre sí. Una diferencia de redacción EMA/AEMPS en la Tabla 4 de Vocabria queda señalada para los clínicos.
+- `pruebas/corpus-dorado/la-tar.json`: 25 casos con esperados calculados a mano; `pruebas/corpus-la-tar.test.mjs` (5 pruebas) los contrasta con una aritmética de calendario independiente. No ejecuta ningún módulo LA-TAR, que no existe.
+- `npm test`: 125 pruebas superadas (120 previas + 5 nuevas). Pendiente: aprobación del comité y revisión por al menos dos clínicos.
+
 ## Actuación A08 · Esquemas cerrados, lista blanca y migraciones (2026-11-25)
 
 Ver `docs/ESQUEMAS_EVENTOS.md`. No es validación clínica ni de seguridad: son controles de integridad de la demostración, en el navegador.
