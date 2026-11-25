@@ -89,6 +89,18 @@ function guardar(next) {
 function add(e) {
   guardar(anexar(db, seleccion, e));
 }
+/** Informa de una migración de formato o de eventos guardados que no cumplen el esquema (se conservan sin modificar). */
+function avisoDeLectura(dx) {
+  const n = dx.no_conformes.length;
+  if (n) {
+    const ej = dx.no_conformes[0];
+    $("mensaje").textContent = `${n} evento${n === 1 ? "" : "s"} guardado${n === 1 ? "" : "s"} no cumple${n === 1 ? "" : "n"} el esquema actual (p. ej. ${ej.paciente} · ${ej.tipo}: ${ej.motivo}). Se conservan sin modificar; revíselos antes de usar esos datos.`;
+    $("mensaje").className = "error";
+  } else if (dx.migrada_desde) {
+    $("mensaje").textContent = "Sus datos tenían el formato anterior y se han leído sin cambios. Se actualizarán con la próxima acción que guarde, conservando una copia de la base anterior.";
+    $("mensaje").className = "success";
+  }
+}
 function flash(s) {
   $("mensaje").textContent = s;
   $("mensaje").className = "success";
@@ -693,6 +705,7 @@ try {
     reglas = { ...reglasConParametros(g.ventana, g.umbral) };
   }
   if (location.hash.startsWith("#panel/cmo/")) tab = "intervenciones";
+  avisoDeLectura(repo.diagnostico);
   render();
 } catch (e) {
   $("contenido").textContent =

@@ -4,6 +4,8 @@ import { historialDispensaciones, planificarDispensaciones, mismaClave } from ".
 import { validarGestionSenal } from "./senales.js";
 import { validarEvaluacionAdherencia } from "./adherencia.js";
 import { validarMedicamentos } from "./cima.js";
+import { validarEvento, TIPOS_EVENTO } from "./esquemas-eventos.js";
+import { FORMATO_ACTUAL, FORMATO_ANTERIOR, ESQUEMA_EVENTOS, migrarBase, diagnosticarBase } from "./migraciones.js";
 import {
   CATALOGOS,
   EXPERIENCIA,
@@ -17,7 +19,7 @@ import {
   REGLAS,
 } from "./motor.js";
 const copia = (x) => structuredClone(x);
-export const vacio = () => ({ formato: "vihconectados/demo@1", pacientes: [] });
+export const vacio = () => ({ formato: FORMATO_ACTUAL, esquema_eventos: ESQUEMA_EVENTOS, pacientes: [] });
 /** Sin nivel indicado el caso queda sin estratificar: no se asigna ningún nivel por defecto. */
 export function crearPaciente(db, nivel = null, fechaNivel) {
   if (fechaNivel) fecha(fechaNivel);
@@ -44,22 +46,52 @@ export function crearPaciente(db, nivel = null, fechaNivel) {
     ],
   };
 }
-/** Puerto de repositorio: leer() y guardar(db). Un backend futuro debe validar y autorizar cada comando. */
+/**
+ * Puerto de repositorio de demostración: leer() y guardar(db). Un backend futuro debe validar y autorizar cada comando.
+ * leer() no escribe: una base del formato anterior se migra en memoria y se persiste, junto con una copia de la
+ * anterior, en la primera escritura. `diagnostico` describe la última lectura.
+ */
 export class RepositorioDemo {
   constructor(storage) {
     this.storage = storage;
     this.key = "vihconectados.demo.v1";
+    this.keyCopia = this.key + ".copia-previa";
+    this.diagnostico = { eventos: 0, no_conformes: [], migrada_desde: null };
+    this.pendienteCopia = null;
   }
   leer() {
     const raw = this.storage.getItem(this.key);
-    if (!raw) return vacio();
-    const db = JSON.parse(raw);
-    if (db.formato !== "vihconectados/demo@1" || !Array.isArray(db.pacientes))
-      throw Error("Almacenamiento incompatible");
-    return copia(db);
+    if (!raw) {
+      this.diagnostico = { eventos: 0, no_conformes: [], migrada_desde: null };
+      this.pendienteCopia = null;
+      return vacio();
+    }
+    let db;
+    try {
+      db = JSON.parse(raw);
+    } catch {
+      throw Error("Almacenamiento incompatible: el contenido no es JSON válido. No se ha modificado ni borrado nada; conserve una copia antes de continuar.");
+    }
+    const migrada = migrarBase(db);
+    const desde = migrada === db ? null : db.formato;
+    this.pendienteCopia = desde ? raw : null;
+    this.diagnostico = { ...diagnosticarBase(migrada), migrada_desde: desde };
+    return copia(migrada);
   }
   guardar(db) {
+    if (db?.formato !== FORMATO_ACTUAL || !Array.isArray(db.pacientes))
+      throw Error(`No se guarda una base con formato distinto de ${FORMATO_ACTUAL}.`);
+    if (this.pendienteCopia) {
+      // Copia de la base anterior antes de sobrescribirla, para poder volver a una versión previa. Si no cabe
+      // (cuota), se continúa: la base nueva conserva íntegros todos los eventos.
+      try {
+        if (!this.storage.getItem(this.keyCopia)) this.storage.setItem(this.keyCopia, this.pendienteCopia);
+      } catch {
+        /* sin copia previa */
+      }
+    }
     this.storage.setItem(this.key, JSON.stringify(db));
+    this.pendienteCopia = null;
   }
 }
 export function anexar(db, id, evento) {
@@ -67,6 +99,7 @@ export function anexar(db, id, evento) {
     p = next.pacientes.find((p) => p.id === id);
   if (!p) throw Error("Caso inexistente");
   const e = copia(evento);
+  validarEvento(e);
   if (e.fecha) fecha(e.fecha);
   if (e.tipo === "tratamiento") {
     if (e.tar !== "CIMA" && e.modalidad && e.modalidad !== "oral") throw Error("La modalidad intramuscular requiere medicamentos seleccionados desde CIMA.");
@@ -138,6 +171,9 @@ export function anexar(db, id, evento) {
     e.filas = validado.filas;
     e.duplicadas = (e.duplicadas || []).filter(n => Number.isInteger(n) && n >= 2);
     e.fecha = filas[0].fecha;
+  } else if (e.tipo === "importacion") {
+    // Importación directa de filas ya preparadas (CSV clásico o escenarios): se validan igual que las demás.
+    e.filas.forEach((f) => validarDispensacion(p, f));
   } else if (e.tipo === "nivel") {
     if (!["1", "2", "3"].includes(e.nivel)) throw Error("Nivel inválido");
   } else if (e.tipo === "actuacion") {
@@ -157,16 +193,7 @@ export function anexar(db, id, evento) {
     if (!p.eventos.some((x) => x.id === e.informe && x.tipo === "informe"))
       throw Error("Informe inexistente");
     transicion(estadoComunicacion(p, e.informe), e.estado);
-  } else if (
-    ![
-      "importacion",
-      "informe",
-      "informe_paciente",
-      "revision_alertas",
-      "configuracion",
-    ].includes(e.tipo)
-  )
-    throw Error("Tipo de evento desconocido");
+  } else if (!TIPOS_EVENTO.includes(e.tipo)) throw Error("Tipo de evento desconocido");
   e.id = crypto.randomUUID();
   e.registrado = new Date().toISOString();
   p.eventos.push(e);

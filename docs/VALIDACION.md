@@ -1,5 +1,15 @@
 # Validación técnica ejecutada
 
+## Actuación A08 · Esquemas cerrados, lista blanca y migraciones (2026-11-25)
+
+Ver `docs/ESQUEMAS_EVENTOS.md`. No es validación clínica ni de seguridad: son controles de integridad de la demostración, en el navegador.
+
+- `src/esquemas-eventos.js`: esquema cerrado para los 16 tipos que acepta `anexar`; `id` y `registrado` reservados; las importaciones directas de filas se validan contra los episodios. `src/migraciones.js`: formato `demo@2`, migración aditiva desde `demo@1`, diagnóstico de eventos no conformes.
+- La migración se comprobó byte a byte con la cohorte demo y con una base que contiene los 16 tipos generados por los productores reales; `leer()` no escribe; la primera escritura deja copia previa; formato desconocido o JSON dañado no se tocan.
+- Hallazgo adicional durante la verificación: un `importacion` malformado **ya guardado** bloqueaba el arranque (`TypeError` en `render()` antes de poder avisar). `historialDispensaciones` es ahora tolerante y el aviso se muestra antes de dibujar.
+- Ajuste: el esquema de `seguimiento_consulta` exige solo `consulta` y `fecha`, porque una prueba previa (sin modificar) depende de que el negocio responda «cerrado» antes que por campos ausentes. Las claves con valor `undefined` se tratan como ausentes.
+- `npm test`: 120 pruebas superadas (102 previas sin modificar + 18 de `esquemas-eventos.test.mjs`). `npm run check` correcto. `npm run test:browser` incluye `pruebas/esquemas.mjs`; los 8 recorridos superados.
+
 ## Actuación A03 · Registro de reglas versionado (2026-11-25)
 
 Ver `docs/REGISTRO_REGLAS.md`. No es validación clínica: **ninguna regla está validada**, el registro lo hace explícito.

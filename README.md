@@ -81,7 +81,7 @@ Obtenga el UUID y componentes válidos mediante **Descargar CSV de ejemplo** en 
 - `servidor.mjs`: servidor de archivos con rutas permitidas y CSP; sin API de escritura.
 - `datos/`: copias literales de biblioteca y guion VIH con sus metadatos de origen.
 
-Esquemas `vihconectados/demo@1`, `vihconectados/informe@1` y `vihconectados/informe-paciente@1`; versión de aplicación 0.3.0. Los datos guardados de la versión anterior se conservan sin migración destructiva. El adaptador institucional futuro necesita comandos validados en servidor, concurrencia y autorización; reemplazar localStorage por una API no basta.
+Esquemas `vihconectados/demo@2` (la aplicación sigue leyendo y migra `demo@1`; véase `docs/ESQUEMAS_EVENTOS.md`), `vihconectados/informe@1` y `vihconectados/informe-paciente@1`; versión de aplicación 0.3.0. Los datos guardados de la versión anterior se conservan sin migración destructiva. El adaptador institucional futuro necesita comandos validados en servidor, concurrencia y autorización; reemplazar localStorage por una API no basta.
 
 ## Pruebas
 

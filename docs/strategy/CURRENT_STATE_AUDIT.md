@@ -11,7 +11,7 @@
 
 > Este documento no declara cumplimiento normativo ni validación clínica de ninguna parte del sistema. Cuando una conclusión depende de información que no está en el repositorio, se marca `[DATO PENDIENTE]` o `[REQUIERE REFERENCIA]`.
 
-> **Actualización 2026-11-25 (tras aprobar el backlog):** las actuaciones **A06** y **A04** están implementadas. F-11 queda mitigada en visibilidad (el episodio inyectable es ahora una señal pendiente «NO MONITORIZADO»; la detección de administraciones perdidas sigue pendiente de A13/B08) y F-16 queda resuelta (sin nivel por defecto). Se añade un corpus dorado de 26 casos pendiente de firma independiente. El resto de hallazgos describe el estado auditado en el commit `1208ef4`. Detalle en `docs/VALIDACION.md`.
+> **Actualización 2026-11-25 (tras aprobar el backlog):** las actuaciones **A06** y **A04** están implementadas. F-11 queda mitigada en visibilidad (el episodio inyectable es ahora una señal pendiente «NO MONITORIZADO»; la detección de administraciones perdidas sigue pendiente de A13/B08) y F-16 queda resuelta (sin nivel por defecto). Se añade un corpus dorado de 26 casos pendiente de firma independiente. **A03** (registro de reglas versionado) y **A08** (esquemas cerrados, lista blanca y migraciones) también están implementadas: F-12 queda resuelta en el cliente y F-03 en lo relativo a migraciones. El resto de hallazgos describe el estado auditado en el commit `1208ef4`. Detalle en `docs/VALIDACION.md`.
 
 ---
 
