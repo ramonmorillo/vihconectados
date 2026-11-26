@@ -157,3 +157,10 @@ El envío por Git de `feat/fase-1` se completó correctamente. La rama está dis
 - **Qué NO garantiza:** el hash **no es una firma**: detecta corrupción o edición accidental, no acredita autor ni origen (cualquiera puede recalcularlo). El modo mínimo conserva las señales y las referencias que contengan. Los informes ya guardados en la base siguen embebiendo todos los eventos. La exportación de la base completa no tiene modo mínimo.
 - **Decisión abierta:** D-G16 (modo predeterminado y finalidad de cada modo). Hoy la interfaz ofrece ambos botones sin predeterminado.
 - **No hay verificador en la interfaz:** `verificar()` existe y está probada, pero ninguna pantalla permite cargar un fichero para comprobarlo (pendiente si el comité lo pide).
+
+## A10 · Modelo de amenazas y plan de pruebas de seguridad (2026-11-26)
+
+- **Qué existe:** `docs/strategy/THREAT_MODEL.md` (STRIDE: 6 activos, 5 límites de confianza, 20 amenazas de la aplicación actual con evidencia y estado, 12 amenazas previstas para un servidor futuro) y `pruebas/seguridad-superficie.test.mjs` (8 pruebas que arrancan el servidor y comprueban lista blanca de rutas con 10 rutas hostiles, CSP y cabeceras, coherencia entre la CSP del servidor y la del HTML, ausencia de APIs de ejecución dinámica, destinos de `fetch`, `noopener` y ausencia de secretos en almacenamiento, más un límite revisado de asignaciones a `innerHTML`). Mutación sobre copia: 8 mutantes, 8 detectados.
+- **Qué NO se ha hecho:** revisión por una persona de seguridad (D-G17), prueba de penetración, análisis automático de dependencias o secretos, auditoría línea a línea de las 25 asignaciones a `innerHTML`. El documento es una propuesta del autor.
+- **Hallazgos abiertos:** `frame-ancestors` solo se envía como cabecera del servidor (la CSP del `<meta>` no puede llevarlo); faltan `form-action`, `Referrer-Policy` y `Permissions-Policy`; el servidor es HTTP plano y escucha en todas las interfaces (aceptable solo como demostración).
+- **Límite de la prueba del `innerHTML`:** el límite es un aviso para revisar, no una demostración de ausencia de XSS.

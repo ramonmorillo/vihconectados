@@ -27,10 +27,10 @@ test('Toda decisión abierta en las especificaciones figura en el registro únic
 });
 
 test('Cada fila del registro tiene responsable, estado válido, ola entre 0 y 4 y qué desbloquea; los identificadores no se repiten', () => {
-  assert.equal(filas.length, 52);
+  assert.equal(filas.length, 53);
   assert.equal(new Set(filas.map((f) => f.id)).size, filas.length);
   const porBloque = (p) => filas.filter((f) => p.test(f.id)).length;
-  assert.deepEqual([porBloque(/^D-G\d+$/), porBloque(/^D-\d+$/), porBloque(/^D-E\d+$/), porBloque(/^D-Q\d+$/)], [16, 12, 13, 11]);
+  assert.deepEqual([porBloque(/^D-G\d+$/), porBloque(/^D-\d+$/), porBloque(/^D-E\d+$/), porBloque(/^D-Q\d+$/)], [17, 12, 13, 11]);
   for (const f of filas) {
     assert.ok(f.decision.length > 15, `${f.id}: sin descripción`);
     assert.ok(f.quien.length > 2, `${f.id}: sin responsable`);

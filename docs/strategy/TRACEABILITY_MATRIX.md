@@ -50,6 +50,7 @@
 | CAP-31 | Gobernanza de decisiones abiertas | IMPLEMENTADO (registro; ninguna decisión resuelta) | `docs/strategy/DECISIONS_REGISTER.md` | `pruebas/decisiones.test.mjs` | R27, R30 | A01 |
 | CAP-32 | Trazabilidad entre capacidades, código y pruebas | IMPLEMENTADO | `docs/strategy/TRACEABILITY_MATRIX.md` | `pruebas/trazabilidad.test.mjs` | R33 | A02 |
 | CAP-33 | Integración continua y ausencia de dependencias de ejecución | IMPLEMENTADO (el flujo existe; su ejecución en GitHub no se ha podido comprobar desde esta sesión) | `.github/workflows/ci.yml` | `pruebas/ci.test.mjs` | R33 | A05 |
+| CAP-35 | Modelo de amenazas y controles de seguridad de la superficie actual | PARCIAL (borrador sin revisión de seguridad; sin prueba de penetración) | `docs/strategy/THREAT_MODEL.md`, `servidor.mjs` | `pruebas/seguridad-superficie.test.mjs` | R16, R17, R24 | A10 |
 | CAP-34 | Manifiesto con hash y exportación mínima de informes | IMPLEMENTADO (el hash detecta alteración accidental; no es una firma) | `src/exportacion.js` | `pruebas/exportacion.test.mjs`, `pruebas/navegador.mjs` | R19 | A09 |
 
 ---

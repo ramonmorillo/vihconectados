@@ -21,9 +21,9 @@ const backlog = new Set([...leer('docs/strategy/PRIORITIZED_BACKLOG.md').matchAl
 const listar = (dir, f) => readdirSync(new URL(dir, RAIZ)).filter(f);
 const todasRutas = filas.flatMap((f) => [...f.modulos, ...f.pruebas]);
 
-test('La matriz tiene 34 capacidades con identificadores únicos y estados del vocabulario', () => {
-  assert.equal(filas.length, 34);
-  assert.equal(new Set(filas.map((f) => f.id)).size, 34);
+test('La matriz tiene 35 capacidades con identificadores únicos y estados del vocabulario', () => {
+  assert.equal(filas.length, 35);
+  assert.equal(new Set(filas.map((f) => f.id)).size, 35);
   for (const f of filas) assert.ok(ESTADOS.includes(estadoBase(f)), `${f.id}: estado ${f.estado}`);
 });
 
