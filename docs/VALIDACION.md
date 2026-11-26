@@ -164,3 +164,10 @@ El envío por Git de `feat/fase-1` se completó correctamente. La rama está dis
 - **Qué NO se ha hecho:** revisión por una persona de seguridad (D-G17), prueba de penetración, análisis automático de dependencias o secretos, auditoría línea a línea de las 25 asignaciones a `innerHTML`. El documento es una propuesta del autor.
 - **Hallazgos abiertos:** `frame-ancestors` solo se envía como cabecera del servidor (la CSP del `<meta>` no puede llevarlo); faltan `form-action`, `Referrer-Policy` y `Permissions-Policy`; el servidor es HTTP plano y escucha en todas las interfaces (aceptable solo como demostración).
 - **Límite de la prueba del `innerHTML`:** el límite es un aviso para revisar, no una demostración de ausencia de XSS.
+
+### A10 · Auditoría dinámica de `innerHTML` (2026-11-26)
+
+- **Qué se hizo:** `pruebas/xss-canario.mjs` (se ejecuta con `npm run test:browser`, unos 4 minutos) envenena por separado cada uno de los 300 grupos de campos de texto de una base con los 16 tipos de evento (`pruebas/fixtures-base-completa.js`, extraída de `esquemas-eventos.test.mjs`, que ahora la importa) y comprueba si algún valor se interpreta como HTML.
+- **Hallazgos objetivos:** 6 grupos inyectados antes de corregir (`paciente.id`, `visita.fecha`, `estado_comunicacion.estado`, `revision_alertas.registrado`, `tratamiento.id`, `nivel.nivel`). Corregidos con `esc()` en `src/app.js`; por precaución también la fecha de corte y las cifras almacenadas en `src/medicacion.js`, `src/registro-manual.js`, `src/vista-consulta.js` y `src/revision-datos.js`. Tras la corrección: 0 inyectados, 80 escapados, 5 bloqueados por validación, **215 no mostrados**.
+- **Límite principal:** la cobertura es del 28 %. «No alcanzado» no es «seguro». Los informes congelados y sus ventanas concentran 163 de los 215 grupos sin ver.
+- **Contraste:** la prueba detectó los 6 fallos reales antes de la corrección (es la mejor prueba de que mide algo); no se hizo contraste por mutación adicional.

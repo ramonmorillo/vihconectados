@@ -9,7 +9,7 @@ export function abrirSeleccionTar({ fin, modal, guardar }) {
   modal(
     "Registrar TAR desde CIMA",
     `
-    <label>Fecha de inicio<input name="fecha" type="date" required value="${fin}"></label>
+    <label>Fecha de inicio<input name="fecha" type="date" required value="${esc(fin)}"></label>
     <div class="notice">Consulte el catálogo oficial AEMPS y seleccione todos los medicamentos del TAR del caso ficticio (hasta 8). Puede buscar y añadir un segundo fármaco sin perder el primero. No se verifican dosis, interacciones ni adecuación del régimen.</div>
     <p><a href="${CIMA_WEB}" target="_blank" rel="noopener noreferrer">Abrir CIMA · AEMPS ↗</a></p>
     <label>Medicamento o principio activo<input id="consultaCima" maxlength="100" autocomplete="off" placeholder="Ej.: nombre comercial o principio activo"></label>

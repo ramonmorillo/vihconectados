@@ -49,7 +49,7 @@ flowchart LR
 | ID | STRIDE | Amenaza | Evidencia y control actual | Estado | Riesgo / actuación |
 |---|---|---|---|---|---|
 | T-01 | I, E | Lectura de ficheros del servidor fuera de la lista blanca (recorrido de ruta, `servidor.mjs`, `.git`, pruebas, Markdown) | Regex de ruta cerrada. Sondeo y pruebas: 10 rutas hostiles devuelven 404 | **Comprobada** | R24 |
-| T-02 | T, E | XSS por contenido externo (CIMA) o texto libre (`objetivo`, `observaciones`, `instrucciones`, nombre del medicamento) | CSP `script-src 'self'` sin `unsafe-inline`/`unsafe-eval`; `esc()`/`escapar()`; pruebas de escape con `<script>` e `<img onerror>` (`desktop.test.mjs`, `cima-informes.test.mjs`). Hay **25 asignaciones a `innerHTML`**; no se ha auditado línea a línea cada interpolación. Una búsqueda dirigida de campos de texto libre sin escape solo halló usos con `textContent` o texto plano | Comprobada parcialmente | R24 · **Pendiente:** auditoría completa de las 25 asignaciones |
+| T-02 | T, E | XSS por contenido externo (CIMA) o texto libre y datos almacenados | CSP `script-src 'self'` sin `unsafe-inline`/`unsafe-eval`; `esc()`/`escapar()`. **La auditoría dinámica (§5bis) encontró 6 campos que se interpretaban como HTML y se corrigieron**; tras la corrección, 0 de 300 grupos se inyectan. Cobertura limitada: 85 de 300 grupos llegan a mostrarse | **Comprobada parcialmente** (corregida; cobertura 28 %) | R24 · ver §5bis |
 | T-03 | E | Ejecución dinámica de código (`eval`, `new Function`, `document.write`, `insertAdjacentHTML`) | Ninguna aparición; prueba que falla si se añade | **Comprobada** | R24 |
 | T-04 | T | Inyección de contenido por un ataque a CIMA o a la red (respuesta manipulada) | TLS del navegador hacia `cima.aemps.es`; campos truncados y escapados. **Sin comprobación de integridad del catálogo** más allá de TLS | Inspección | R25, R26 |
 | T-05 | I | Exfiltración de `localStorage` por un script inyectado | `connect-src 'self' https://cima.aemps.es`: un script inyectado no puede enviar a un host arbitrario. Residual: podría codificar datos en una consulta a CIMA (sin acceso del atacante a esos registros): riesgo despreciable, anotado por exhaustividad | Comprobada (CSP) | R24 |
@@ -92,9 +92,25 @@ No se asignan estados porque no existe implementación. Cada fila es una exigenc
 
 - Revisión de seguridad por una persona competente (**D-G17**). Hasta que exista, este documento es una propuesta del autor.
 - Prueba de penetración, análisis estático, análisis de dependencias o escaneo de secretos con herramienta (**no ejecutados**).
-- Auditoría línea a línea de las 25 asignaciones a `innerHTML` (T-02).
+- Los 215 grupos de campos que la auditoría dinámica no llegó a ver mostrados (§5bis): no se demuestra nada sobre ellos.
 - Comportamiento en navegadores distintos del usado en los guiones, y en un alojamiento real.
 - Cualquier amenaza de la Parte B.
+
+## 5bis. Auditoría dinámica de `innerHTML` (resultado)
+
+**Método.** Revisar a ojo 25 asignaciones y 751 interpolaciones de plantilla no era fiable. En su lugar, `pruebas/xss-canario.mjs` toma una base con los 16 tipos de evento (`pruebas/fixtures-base-completa.js`, generada por los productores reales) y, **para cada grupo de campos de texto** (por ejemplo `actuacion.texto`; 300 grupos), envenena solo sus valores con una carga que, si se interpretara como HTML, crearía un elemento `<i data-canary="GRUPO">`. Recorre las listas, las fichas de caso con todas sus pestañas y las ventanas que se abren desde ellas, y cuenta si el elemento aparece (inyectado) o si la carga se ve como texto (escapado). Cada grupo va aislado, porque un campo que el cálculo usa (fecha, TAR…) hace fallar el cálculo y ocultaría los demás. No usa `onerror`: la CSP lo bloquearía, así que mide el escape y no la CSP.
+
+**Resultado antes de corregir (dato objetivo).** 6 grupos se interpretaban como HTML: `paciente.id` (`app.js`, tabla de casos y cabecera del caso), `visita.fecha`, `estado_comunicacion.estado`, `revision_alertas.registrado`, `tratamiento.id` (en el detalle de cobertura) y `nivel.nivel` (en la biblioteca CMO). **Los cuatro últimos no se habían detectado en la revisión manual previa**, que solo había mirado campos de texto libre.
+
+**Corrección.** Se escapan con `esc()` esas interpolaciones y las de la misma clase (fechas, identificadores, estados y cifras almacenadas que se pintaban sin escapar, y la fecha de corte `fin` en los formularios). Tras la corrección: **0 de 300 grupos se inyectan**; 80 se muestran escapados; 5 quedan bloqueados por la validación de fecha o de TAR; **215 no llegaron a mostrarse**.
+
+**Qué NO demuestra.**
+- Los **215 grupos no vistos** (163 son copias embebidas en informes congelados; el resto, campos que ninguna vista recorrida muestra) no están auditados: «no alcanzado» no significa «seguro». La cobertura efectiva es de 85 grupos sobre 300 (28 %).
+- Solo se envenenan cadenas; los números almacenados se revisaron por inspección y se escaparon por precaución, sin prueba dinámica.
+- Datos de CIMA envenenados en la respuesta de red (T-04) no se prueban aquí.
+- El valor de la prueba como protección futura depende de ampliar esa cobertura.
+
+**Impacto real.** En la demo, quien podía introducir esos valores era el propio usuario (datos locales), y la CSP impedía ejecutar JavaScript inyectado: el hallazgo era de integridad de la presentación. Con un servidor compartido y datos que llegan de otros orígenes (importaciones, otros usuarios) pasaría a ser XSS almacenado con la CSP como única barrera.
 
 ## 6. Plan de pruebas de seguridad
 
@@ -102,7 +118,8 @@ No se asignan estados porque no existe implementación. Cada fila es una exigenc
 |---|---|---|---|
 | **Ya automatizado** (`npm test`) | Lista blanca de rutas y recorridos hostiles; CSP estricta y coherente entre servidor y HTML; sin `eval`/`document.write`/`insertAdjacentHTML`; destinos de `fetch` cerrados; enlaces con `noopener`; sin secretos en almacenamiento; límite de asignaciones a `innerHTML` | `pruebas/seguridad-superficie.test.mjs` (8 pruebas, contrastadas por mutación: 8 de 8 detectadas) | Hecho |
 | Ya automatizado | Escape de HTML en vistas y en informes; exportación; esquemas cerrados | `desktop.test.mjs`, `cima-informes.test.mjs`, `exportacion.test.mjs`, `esquemas-eventos.test.mjs` | Hecho |
-| Siguiente (sin dependencias) | Auditar y documentar cada asignación a `innerHTML`; prueba de datos de sesión malformados (T-14) | Revisión manual + prueba | Pendiente |
+| Hecho en A10 (segunda parte) | Auditoría dinámica de `innerHTML` con campos envenenados (`pruebas/xss-canario.mjs`, §5bis) | Playwright (ya presente) | Hecho; cobertura parcial |
+| Siguiente (sin dependencias) | Ampliar la cobertura del guion (informes congelados y ventanas, 215 grupos sin ver) y probar datos de sesión malformados (T-14) | Guion + prueba | Pendiente |
 | Con apoyo del centro | Análisis de dependencias y de secretos en CI; revisión del alojamiento (TLS, cabeceras, T-15 a T-17) | Herramientas del centro | Pendiente · D-G17 |
 | Antes de cualquier piloto con datos reales | Prueba de penetración por un tercero; pruebas de aislamiento multicentro y de autorización (Parte B) | Externa | Pendiente · bloqueado por B01 a B03 |
 
