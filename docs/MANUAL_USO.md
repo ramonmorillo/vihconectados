@@ -5,7 +5,7 @@
 
 Autor de la herramienta: **Dr. Ramón Morillo Verdugo**.
 
-Edición del manual: **9 de noviembre de 2026**. Aplicación v0.3.0, con consulta guiada y seguimiento.
+Edición del manual: **26 de noviembre de 2026**. Aplicación v0.3.0 (cohorte 2026-11-v2, formato de datos `demo@2`), con consulta guiada, seguimiento, registro de reglas y exportación con manifiesto.
 
 **Solo casos sintéticos.** La versión descrita es una demostración local. No es un sistema de prescripción ni un producto clínicamente validado. No introduzca datos reales ni credenciales.
 
@@ -20,20 +20,28 @@ Revisar cobertura teórica del TAR oral, registrar experiencia y valoración man
 - Cambiar el estado de un informe no envía ni recibe una comunicación real.
 - Las vistas actuales se reconstruyen con las correcciones disponibles; los informes guardados conservan su instantánea.
 
+### Novedades de esta edición
+
+- **TAR intramuscular «NO MONITORIZADO».** Un episodio intramuscular genera una señal pendiente que debe gestionarse: la herramienta no vigila administraciones perdidas o retrasadas (apartados 3 y 5).
+- **Registro de reglas.** **Modelo y reglas** muestra cada regla con su versión y su estado de validación; ninguna está validada (apartado 2).
+- **Exportaciones con manifiesto.** Los informes y la demostración se descargan con esquema, versión, fecha y huella SHA-256; el informe puede ser **completo** o **mínimo** (apartado 8).
+- **Datos guardados con el formato anterior.** Se leen sin cambios, se actualizan al guardar y se conserva una copia de la base anterior; si algún evento no cumple el esquema, se avisa y se conserva (apartado 10).
+- **Sin nivel CMO por defecto.** Un caso sin nivel asignado se muestra como **sin dato**; la herramienta no supone un nivel.
+
 ### Contenido
 
 | Página | Apartado |
 | --- | --- |
-| 2 | Primer acceso, navegación y recorrido rápido |
-| 3 | Fecha de corte, cobertura y adherencia |
-| 4 | Casos, selección de medicamentos y TAR intramuscular |
-| 5 | Dispensaciones manuales, CSV y conciliación |
-| 6 | Correcciones y gestión de señales |
-| 7 | Consulta guiada: los cuatro pasos |
-| 8 | Seguimiento del plan y bandeja de tareas |
-| 9 | Informes, hoja del paciente y comunicaciones |
-| 10 | Recorridos por perfil y ejemplo completo |
-| 11 | Problemas frecuentes, conservación de datos y límites |
+| 3 | Primer acceso, navegación y recorrido rápido |
+| 4 | Fecha de corte, cobertura y adherencia |
+| 5 | Casos, selección de medicamentos y TAR intramuscular |
+| 6 | Dispensaciones manuales, CSV y conciliación |
+| 7 | Correcciones y gestión de señales |
+| 8 | Consulta guiada: los cuatro pasos |
+| 9 | Seguimiento del plan y bandeja de tareas |
+| 10 | Informes, hoja del paciente y comunicaciones |
+| 11 | Recorridos por perfil y ejemplo completo |
+| 12 | Problemas frecuentes, conservación de datos y límites |
 
 <!-- pagina -->
 # 1. Primer acceso y recorrido rápido
@@ -100,6 +108,8 @@ Las vistas reconstruyen el pasado con la información y correcciones disponibles
 
 La ventana inicial de 180 días y el parámetro de señal del 90 % son **demostrativos y pendientes de validación**. No son un diagnóstico ni una regla para cambiar TAR. El modelo no incorpora ingresos, suministro externo, reservas iniciales, suspensiones o pérdidas de medicación. Estos límites deben tenerse presentes al interpretar el resultado.
 
+En **Modelo y reglas** puede consultar el **registro de reglas aplicadas**: identificador, tipo (métrica o señal), versión y estado de validación. Todas figuran como **pendientes de validación profesional**. Cambiar la ventana o el parámetro de señal en la sesión genera una versión distinta, que queda reflejada en los informes.
+
 <!-- pagina -->
 # 3. Casos y medicamentos desde CIMA
 
@@ -128,6 +138,8 @@ Un nuevo episodio conserva los tratamientos anteriores y cierra el anterior para
 Se pueden seleccionar presentaciones intramusculares admitidas por el filtro de catálogo, incluidas las correspondientes a una combinación como **Vocabria + Rekambys**, cuando CIMA devuelve fichas válidas. Revise la vía de cada presentación: no mezcle una fase oral y una intramuscular en el mismo episodio.
 
 El registro intramuscular es **de catálogo**. No registra administraciones, no calcula ventanas de inyección ni transforma envases en días. Sus periodos se excluyen del numerador y denominador del PDC oral. Si solo hay periodo intramuscular, el PDC oral no es aplicable; no se muestra como un falso 0 %. Puede registrar una valoración manual independiente.
+
+**Atención:** un episodio intramuscular aparece como señal pendiente **«NO MONITORIZADO»**. Significa que la herramienta **no evalúa asistencia, administración ni ventanas de inyección**: una administración perdida o retrasada no generará ninguna señal y requiere seguimiento profesional manual. La señal permanece pendiente hasta que un profesional la gestiona, y se sigue calculando aunque se gestione.
 
 CIMA solo recibe búsquedas e identificadores de medicamento; no recibe el caso. Si no responde o faltan datos requeridos, no se inventa una ficha. No cambie un tratamiento para eludir el filtro.
 
@@ -189,7 +201,7 @@ Esta corrección se aplica a dispensaciones. No es un editor general para borrar
 
 ### Leer las señales
 
-La herramienta distingue **avisos metodológicos**, **calidad de datos** y **señales asistenciales**. Los avisos, por ejemplo que un periodo intramuscular no entra en el PDC oral, no se cuentan como pendientes asistenciales. La mesa y los contadores se centran en pendientes asistenciales o de calidad; los filtros de cohorte permiten consultar avisos y señales gestionadas.
+La herramienta distingue **avisos metodológicos**, **calidad de datos** y **señales asistenciales**. Los avisos, por ejemplo que un periodo intramuscular no entra en el PDC oral, no se cuentan como pendientes asistenciales. La señal **NO MONITORIZADO** de un TAR intramuscular se cuenta como pendiente. La mesa y los contadores se centran en pendientes asistenciales o de calidad; los filtros de cohorte permiten consultar avisos y señales gestionadas.
 
 ### Gestionar una señal
 
@@ -279,7 +291,7 @@ En el caso pulse **Generar informe simulado**. Se guarda una instantánea con co
 
 - **Ver e imprimir:** abre la composición preparada para impresión. En **Imprimir / PDF**, seleccione guardar como PDF, papel A4 y desactive las cabeceras y pies del navegador.
 - **Copiar para historia clínica:** genera texto por apartados. Si el portapapeles no está disponible aparece una alternativa manual. La aplicación no escribe en ninguna historia clínica. No pegue casos ficticios en una historia real.
-- **Descargar JSON:** conserva la representación técnica del informe; no es un PDF firmado ni un recurso de interoperabilidad validado.
+- **JSON completo y JSON mínimo:** conservan la representación técnica del informe dentro de un paquete con esquema, versión de la aplicación, fecha de exportación, modo y huella SHA-256 del contenido. El **completo** incluye el historial íntegro del paciente (todos los eventos) y permite reproducir el cálculo; el **mínimo** omite esa lista e indica cuántos eventos omite, pero **no permite reproducir ni verificar el cálculo** a partir del fichero. Elija el mínimo cuando vaya a compartirlo. La huella detecta alteraciones accidentales; **no es una firma** ni acredita autor u origen, y el fichero no es un recurso de interoperabilidad validado. Los informes ya guardados conservan todos sus eventos en la base.
 
 ### Hoja para el paciente
 
@@ -356,11 +368,15 @@ Es una instantánea guardada. Genere otro informe para reflejar la reconstrucci�
 
 Los datos se guardan en el almacenamiento de ese navegador y origen. Otro dispositivo, perfil o dirección web puede no compartirlos. Borrar los datos del sitio o trabajar en una sesión privada que se cierre puede eliminar la demostración. No hay recuperación institucional ni sincronización multidispositivo.
 
-En **Modelo y reglas → Exportar demostración JSON** puede descargar la información para revisión técnica. La exportación no equivale a una copia de seguridad con restauración comprobada: esta versión no ofrece importar el JSON como historial clínico. Conserve también los informes que necesite revisar. No use este almacenamiento para datos reales.
+En **Modelo y reglas → Exportar demostración JSON** puede descargar la información para revisión técnica. La exportación no equivale a una copia de seguridad con restauración comprobada: esta versión no ofrece importar el JSON como historial clínico. Conserve también los informes que necesite revisar. El fichero incluye la misma cabecera con huella que los informes y contiene la base completa. No use este almacenamiento para datos reales.
+
+### Datos guardados con un formato anterior
+
+Si sus datos se guardaron con una edición anterior, se leen **sin cambiarlos** y aparece un aviso. La primera acción que guarde los actualiza al formato `demo@2` y conserva una copia íntegra de la base anterior en el mismo navegador (una sola vez). Si algún evento guardado no cumple el esquema actual, la aplicación lo indica, **no lo borra ni lo modifica** y conviene revisarlo antes de usar esos datos. Si el formato es desconocido, no se modifica nada y se muestra un mensaje.
 
 ### Límites que condicionan el uso
 
-No hay validación clínica del algoritmo, autenticación real, aislamiento hospitalario, firma electrónica, prescripción, integración con historia clínica, envío de comunicaciones ni control de administraciones inyectables. Los responsables de planes son funciones simuladas. La biblioteca CMO y los parámetros requieren revisión profesional; citar una fuente no implica aval institucional.
+Ninguna regla está validada clínicamente: su aprobación depende de un comité que aún no está constituido en esta herramienta. No hay autenticación real, aislamiento hospitalario, firma electrónica, prescripción, integración con historia clínica, envío de comunicaciones ni control de administraciones inyectables. Los responsables de planes son funciones simuladas. La biblioteca CMO y los parámetros requieren revisión profesional; citar una fuente no implica aval institucional.
 
 ### Glosario y fuentes
 
