@@ -31,6 +31,8 @@ const MUESTRAS = {
   informe: { tipo: 'informe', fecha: '2026-01-01', formato: 'vihconectados/informe@1', paciente: 'DEMO-001', cobertura: {}, alertas: [] },
   informe_paciente: { tipo: 'informe_paciente', fecha: '2026-01-01', formato: 'vihconectados/informe-paciente@1', paciente: 'DEMO-001', cobertura: {}, alertas: [], plan: {}, recurso: null },
   revision_alertas: { tipo: 'revision_alertas', fecha: '2026-01-01', resultado: 'Requiere exploración' },
+  solicitud_valoracion: { tipo: 'solicitud_valoracion', fecha: '2026-01-01', origen: 'Farmacia Hospitalaria', destino: 'Infecciosas', motivo: 'm', plazo: '2026-01-05', senal: null },
+  estado_solicitud: { tipo: 'estado_solicitud', fecha: '2026-01-01', solicitud: 's', estado: 'recibida', perfil: 'Infecciosas', respuesta: null },
   configuracion: { tipo: 'configuracion', reglas: {} },
 };
 
@@ -101,7 +103,7 @@ test('Configuración: tiene un esquema mínimo y no acepta campos ajenos', () =>
 
 
 
-test('Todo lo que producen los flujos reales de la aplicación cumple los esquemas (los 16 tipos)', () => {
+test('Todo lo que producen los flujos reales de la aplicación cumple los esquemas (los 18 tipos)', () => {
   const d = baseCompleta();
   const tipos = new Set(d.pacientes.flatMap((p) => p.eventos.map((e) => e.tipo)));
   for (const t of TIPOS_EVENTO) assert.ok(tipos.has(t), 'La base de la prueba no contiene ' + t);

@@ -15,11 +15,11 @@
 
 | Bloque | Decisiones | Documento de origen |
 |---|---|---|
-| Gobernanza, regulatorio y aprobación de lo construido (`D-G`) | 17 | Este registro; `CLINICAL_GOVERNANCE.md`, `REGULATORY_READINESS.md`, `PRODUCT_ROADMAP.md` |
+| Gobernanza, regulatorio y aprobación de lo construido (`D-G`) | 18 | Este registro; `CLINICAL_GOVERNANCE.md`, `REGULATORY_READINESS.md`, `PRODUCT_ROADMAP.md` |
 | TAR de acción prolongada (`D-01` a `D-12`) | 12 | `LA_TAR_CLINICAL_SPEC.md` §9 |
 | Evidencia y triangulación (`D-E01` a `D-E13`) | 13 | `EVIDENCE_TRIANGULATION_SPEC.md` §9 |
 | Cuestionarios y escalado (`D-Q01` a `D-Q11`) | 11 | `QUESTIONNAIRE_SPEC.md` §11 |
-| **Total** | **53** | |
+| **Total** | **54** | |
 
 ## 2. Orden recomendado (olas)
 
@@ -55,6 +55,7 @@ Cada ola desbloquea la siguiente. **Una ola posterior puede empezar a discutirse
 | D-G14 | Justificar o sustituir la ventana de 180 días y el umbral de 0,9 del PDC (heredados, sin referencia clínica) | Comité | Abierta | 1 | Validación del PDC (R03); `VALIDATION_MASTER_PLAN.md` |
 | D-G15 | Instrumentos PROM/PREM y sus licencias | Comité | Abierta | 2 | A19; cuestionarios validados |
 | D-G17 | Persona de seguridad del centro que revise el modelo de amenazas (criterio 3 de A10) y fije dónde se aloja la aplicación | Dirección | Abierta | 0 | Cierre de A10; T-15 a T-17; B01 a B03 |
+| D-G18 | Solicitudes entre profesionales: ¿para qué situaciones clínicas se piden, quién responde, en qué plazo máximo y por qué canal real se avisa? El prototipo solo modela el circuito, sin criterios clínicos ni plazos por defecto | Comité (Farmacia e Infecciosas) | Abierta | 2 | Salida del prototipo; B11; A17 |
 | D-G16 | Exportación de informes: ¿qué modo es el predeterminado (completo, que permite reproducir el cálculo, o mínimo, que minimiza datos) y qué finalidad justifica cada uno? Hoy la aplicación ofrece ambos sin predeterminado | Comité y DPD | Abierta | 1 | Cierre de A09; R19; EIPD (C03) |
 
 ---

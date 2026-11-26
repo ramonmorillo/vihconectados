@@ -49,8 +49,9 @@
 | CAP-30 | Recursos externos (MAPEX-ADHEFAR Hub) | IMPLEMENTADO (solo enlace y atribución) | `src/recursos.js` | `pruebas/publico.test.mjs` | R29 | A11 |
 | CAP-31 | Gobernanza de decisiones abiertas | IMPLEMENTADO (registro; ninguna decisión resuelta) | `docs/strategy/DECISIONS_REGISTER.md` | `pruebas/decisiones.test.mjs` | R27, R30 | A01 |
 | CAP-32 | Trazabilidad entre capacidades, código y pruebas | IMPLEMENTADO | `docs/strategy/TRACEABILITY_MATRIX.md` | `pruebas/trazabilidad.test.mjs` | R33 | A02 |
-| CAP-33 | Integración continua y ausencia de dependencias de ejecución | IMPLEMENTADO (el flujo existe; su ejecución en GitHub no se ha podido comprobar desde esta sesión) | `.github/workflows/ci.yml` | `pruebas/ci.test.mjs` | R33 | A05 |
+| CAP-33 | Integración continua y ausencia de dependencias de ejecución | IMPLEMENTADO (ejecutado y en verde en GitHub el 2026-11-26: dos ejecuciones del flujo `pruebas` en el PR #7) | `.github/workflows/ci.yml` | `pruebas/ci.test.mjs` | R33 | A05 |
 | CAP-35 | Modelo de amenazas y controles de seguridad de la superficie actual | PARCIAL (borrador sin revisión de seguridad; sin prueba de penetración) | `docs/strategy/THREAT_MODEL.md`, `servidor.mjs` | `pruebas/seguridad-superficie.test.mjs`, `pruebas/xss-canario.mjs` | R16, R17, R24 | A10 |
+| CAP-36 | Solicitudes de valoración entre profesionales (prototipo local, perfil declarado) | PARCIAL (dominio y pruebas; sin cuentas, avisos ni servidor) | `src/solicitudes.js`, `src/vista-solicitudes.js`, `src/esquemas-eventos.js` | `pruebas/solicitudes.test.mjs`, `pruebas/solicitudes.mjs` | R21, R08 | A17, B11 |
 | CAP-34 | Manifiesto con hash y exportación mínima de informes | IMPLEMENTADO (el hash detecta alteración accidental; no es una firma) | `src/exportacion.js` | `pruebas/exportacion.test.mjs`, `pruebas/navegador.mjs` | R19 | A09 |
 
 ---

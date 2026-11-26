@@ -18,8 +18,9 @@ En la aplicación, lo nuevo que se **ve**: (a) ficha de caso → pestaña *Infor
 | A08 · Esquemas cerrados y migración de datos | Que datos mal formados no rompan nada | Aviso al cargar |
 | A07 · Escritura por comandos | Evita pérdidas al editar | No |
 | A13/A14/A15 · Especificaciones LA-TAR, cuestionarios, triangulación | Diseño listo para que lo revise el comité | No (documentos) |
-| A05 · CI | Pruebas automáticas en GitHub | No (**sin comprobar que corra**) |
+| A05 · CI | Pruebas automáticas en GitHub | No (**ejecutada y en verde en GitHub**, 2026-11-26) |
 | A09 · Exportación con hash, completo o mínimo | Minimizar datos al compartir | Sí |
+| **Solicitudes entre profesionales** (prototipo local) | Primera pieza de comunicación Farmacia–Infecciosas: pedir, acusar, responder y cerrar | Sí (menú *Solicitudes entre profesionales*) |
 | A10 · Modelo de amenazas + 6 fallos de escape corregidos | Seguridad | No |
 | A12 · Mapeo FHIR + 4 ejemplos | Base para integrar | No (**validador oficial sin ejecutar**) |
 

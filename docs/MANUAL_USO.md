@@ -26,6 +26,7 @@ Revisar cobertura teórica del TAR oral, registrar experiencia y valoración man
 - **Registro de reglas.** **Modelo y reglas** muestra cada regla con su versión y su estado de validación; ninguna está validada (apartado 2).
 - **Exportaciones con manifiesto.** Los informes y la demostración se descargan con esquema, versión, fecha y huella SHA-256; el informe puede ser **completo** o **mínimo** (apartado 8).
 - **Datos guardados con el formato anterior.** Se leen sin cambios, se actualizan al guardar y se conserva una copia de la base anterior; si algún evento no cumple el esquema, se avisa y se conserva (apartado 10).
+- **Solicitudes entre profesionales.** Farmacia e Infecciosas pueden pedirse una valoración con plazo y seguir su ciclo: enviada, recibida, respondida y cerrada (apartado 8). Es un prototipo local: no envía nada a nadie.
 - **Sin nivel CMO por defecto.** Un caso sin nivel asignado se muestra como **sin dato**; la herramienta no supone un nivel.
 
 ### Contenido
@@ -33,15 +34,15 @@ Revisar cobertura teórica del TAR oral, registrar experiencia y valoración man
 | Página | Apartado |
 | --- | --- |
 | 3 | Primer acceso, navegación y recorrido rápido |
-| 4 | Fecha de corte, cobertura y adherencia |
-| 5 | Casos, selección de medicamentos y TAR intramuscular |
-| 6 | Dispensaciones manuales, CSV y conciliación |
-| 7 | Correcciones y gestión de señales |
-| 8 | Consulta guiada: los cuatro pasos |
-| 9 | Seguimiento del plan y bandeja de tareas |
-| 10 | Informes, hoja del paciente y comunicaciones |
-| 11 | Recorridos por perfil y ejemplo completo |
-| 12 | Problemas frecuentes, conservación de datos y límites |
+| 5 | Fecha de corte, cobertura y adherencia |
+| 6 | Casos, selección de medicamentos y TAR intramuscular |
+| 7 | Dispensaciones manuales, CSV y conciliación |
+| 8 | Correcciones y gestión de señales |
+| 9 | Consulta guiada: los cuatro pasos |
+| 10 | Seguimiento del plan y bandeja de tareas |
+| 11 | Informes, hoja del paciente y comunicaciones |
+| 13 | Recorridos por perfil y ejemplo completo |
+| 14 | Problemas frecuentes, conservación de datos y límites |
 
 <!-- pagina -->
 # 1. Primer acceso y recorrido rápido
@@ -60,6 +61,7 @@ Si ejecuta una copia local, requiere Node.js 22 o superior: desde la carpeta del
 | Estación de seguimiento | Monitorización y cohorte con búsqueda y filtros; acceso a ficha e intervención CMO. |
 | Casos sintéticos | Abrir casos, crear uno nuevo o añadir escenarios que falten sin borrar los existentes. |
 | Consulta y seguimiento | Revisar planes por plazo, responsable funcional y estado. |
+| Solicitudes entre profesionales | Pedir y responder valoraciones entre Farmacia e Infecciosas, con acuse, respuesta y cierre (prototipo local). |
 | Comunicaciones | Consultar informes y avanzar sus estados simulados. |
 | Modelo y reglas | Consultar límites, parámetros demostrativos y exportar la demostración en JSON. |
 | Recursos de adherencia | Abrir materiales externos complementarios, sin enviar el contexto del caso. |
@@ -310,9 +312,22 @@ Los informes profesionales avanzan por **pendiente → comunicado → recibido �
 
 Ninguno de estos cambios actualiza automáticamente los demás. Por ejemplo, un informe resuelto no cierra el plan del paciente ni acredita que una actuación se realizara.
 
+### Solicitudes entre profesionales
+
+Sirven para que un perfil pida a otro que valore un caso y para dejar constancia del acuse, la respuesta y el cierre.
+
+1. En la ficha del caso, pulse **Solicitar valoración**. El perfil de origen es el que tenga seleccionado en *Solicitudes entre profesionales* («Trabajo como»). Indique el motivo, un plazo y, si quiere, la señal a la que se refiere.
+2. El perfil destinatario la ve en **Me toca** y marca **recibida** (acuse). Después pulsa **Responder** y escribe la respuesta.
+3. El perfil que la envió la ve de nuevo en **Me toca** y pulsa **Cerrar solicitud**.
+4. Cada paso queda registrado con su fecha y su perfil, y respeta la fecha de corte: antes del envío la solicitud no existe. Pasado el plazo sin respuesta aparece como **plazo vencido**.
+
+Cada perfil solo puede dar el paso que le corresponde y en orden: no se puede responder sin acusar recibo, ni cerrar sin respuesta.
+
+**Límites importantes.** El perfil es una función que usted declara: **no es una cuenta ni una identidad verificada**. No se envía ningún aviso ni mensaje, y los dos perfiles trabajan sobre los datos del mismo navegador. Sirve para ensayar el circuito con el equipo; la comunicación real entre dos personas exige un servidor compartido que esta versión no tiene. No escriba datos reales ni identificables en el motivo ni en la respuesta.
+
 ### Información que aún falta para una coordinación real
 
-No hay cuentas personales, permisos por hospital, mensajes, historia clínica conectada, resultados virológicos ni agenda externa. La herramienta permite ensayar el circuito y revisar documentos, pero no sustituye los sistemas asistenciales autorizados.
+No hay cuentas personales, permisos por hospital, avisos o mensajes reales, historia clínica conectada, resultados virológicos ni agenda externa. La herramienta permite ensayar el circuito y revisar documentos, pero no sustituye los sistemas asistenciales autorizados.
 
 <!-- pagina -->
 # 9. Recorridos por perfil y ejemplo completo

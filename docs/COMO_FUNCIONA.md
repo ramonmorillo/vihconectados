@@ -54,7 +54,7 @@ flowchart TD
   H --> X[Exportación con hash SHA-256]
 ```
 
-## 3. Los datos: 16 tipos de evento
+## 3. Los datos: 18 tipos de evento
 Cada evento tiene un esquema cerrado (`src/esquemas-eventos.js`): un campo no previsto se rechaza.
 
 | Grupo | Tipos de evento | Qué guarda |
@@ -65,6 +65,7 @@ Cada evento tiene un esquema cerrado (`src/esquemas-eventos.js`): un campo no pr
 | Plan y seguimiento | `consulta`, `seguimiento_consulta`, `actuacion`, `estado_actuacion` | Problema, objetivo, actuación, responsable funcional, revisión y resultado |
 | Señales | `gestion_senal`, `revision_alertas` | Cómo se gestionó una señal; revisión profesional simulada |
 | Comunicación | `informe`, `informe_paciente`, `estado_comunicacion` | Instantánea congelada y su circuito **simulado** |
+| Solicitudes | `solicitud_valoracion`, `estado_solicitud` | Petición de valoración entre perfiles y su ciclo (enviada → recibida → respondida → cerrada) |
 | Otros | `configuracion` | Sin uso en la aplicación actual |
 
 Dos fechas por evento: **efectiva** (`fecha`: cuándo ocurre) y de **registro** (`registrado`: cuándo se guardó). La vista usa la efectiva (`temporal.js: fechaEfectiva`).
@@ -120,6 +121,7 @@ F. se pintan las pantallas; un informe guarda una INSTANTÁNEA de todo lo anteri
 | Señal | pendiente → revisada / justificada / actuación / cerrada (y «reabierta» si cambia la evidencia) | Documentar cómo se gestionó una evidencia calculada |
 | Plan de consulta | en curso → cerrado, con resultado del objetivo | Documentar el seguimiento |
 | Informe | pendiente → comunicado → recibido → valorado → resuelto | **Simulación**: no se envía nada |
+| Solicitud de valoración | enviada → recibida → respondida → cerrada | Cada paso lo da el perfil que corresponde (destino: recibir y responder; origen: cerrar); sin avisos reales |
 Ninguno actualiza a los demás automáticamente.
 
 ## 7. Qué hace y qué NO hace

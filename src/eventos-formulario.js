@@ -51,3 +51,28 @@ export function construirEvaluacionManual(v) {
     porcentaje: v.porcentaje === "" ? null : Number(v.porcentaje),
   };
 }
+
+/** Solicitud de valoración entre perfiles (docs/strategy/COMUNICACION_PROFESIONALES.md). El perfil es una función declarada. */
+export function construirSolicitud(v, { fin, perfil, destino }) {
+  return {
+    tipo: "solicitud_valoracion",
+    fecha: fin,
+    origen: perfil,
+    destino,
+    motivo: v.motivo,
+    plazo: v.plazo,
+    senal: v.senal ? v.senal : null,
+  };
+}
+
+/** Paso del ciclo (recibida, respondida o cerrada). La respuesta solo existe en «respondida». */
+export function construirPasoSolicitud({ solicitud, estado, perfil, fin, respuesta }) {
+  return {
+    tipo: "estado_solicitud",
+    fecha: fin,
+    solicitud,
+    estado,
+    perfil,
+    ...(estado === "respondida" ? { respuesta } : {}),
+  };
+}
