@@ -6,32 +6,27 @@ import { evaluarSenales, pendientesSenales } from "./senales.js";
 import { abrirDispensacionManual, abrirEvaluacionManual, vistaEvaluacionesManuales } from "./registro-manual.js";
 import { navegacionDesktop, vistaPoblacional, vistaCohorte, conectarCohorte, resumenLongitudinal, itinerarioCMO } from "./desktop.js";
 import {
+  VERSION,
   REGLAS,
   componentes,
   nombreTar,
   EXPERIENCIA,
   ESTADOS,
-  nivel,
   episodios,
   cobertura,
   alertas,
   importarCSV,
   estadoComunicacion,
-  validarReglas,
 } from "./motor.js";
-import { RepositorioDemo, crearPaciente, anexar } from "./almacen.js";
-import {
-  demo,
-  ESCENARIOS,
-  VERSION_COHORTE,
-  crearCasoEscenario,
-  incorporarCohorte,
-} from "./demo.js";
+import { reglasConParametros, fichasAplicadas } from "./reglas.js";
+import { RepositorioLocal } from "./repositorio.js";
+import { ESCENARIOS, VERSION_COHORTE } from "./demo.js";
 import { portada, hospitales } from "./portada.js";
 import { paginaLegal, enlacesLegales, AUTORIA } from "./legal.js";
 import { AccesoDemostracion } from "./acceso.js";
 import { informe, informePaciente, textoInforme } from "./informes.js";
 import { vistaInforme } from "./vista-informes.js";
+import { empaquetar, informeMinimo } from "./exportacion.js";
 import { abrirSeleccionTar } from "./medicacion.js";
 import { ADHEFAR } from "./recursos.js";
 import { enlaceCima } from "./cima.js";
@@ -49,7 +44,7 @@ const $ = (id) => document.getElementById(id),
           "'": "&#39;",
         })[c],
     );
-const repo = new RepositorioDemo(localStorage);
+const repo = new RepositorioLocal(localStorage);
 const proveedorAcceso = new AccesoDemostracion();
 const contextoAcceso = await proveedorAcceso.obtenerContexto();
 $("enlacesLegales").innerHTML = enlacesLegales();
@@ -82,13 +77,27 @@ const select = (name, arr) =>
   `<select name="${name}">${arr.map((x) => `<option value="${esc(x)}">${esc(x.replaceAll("_", " "))}</option>`).join("")}</select>`;
 const nivelCorte = p => nivelHasta(p, fin) || "Sin dato";
 const paciente = () => db.pacientes.find((p) => p.id === seleccion);
-function guardar(next) {
-  repo.guardar(next);
-  db = next;
+/** Toda escritura es un comando (src/comandos.js); la base en memoria es solo el modelo de lectura. */
+function ejecutar(comando) {
+  const { db: siguiente, resultado } = repo.ejecutar(comando);
+  db = siguiente;
   render();
+  return resultado;
 }
 function add(e) {
-  guardar(anexar(db, seleccion, e));
+  return ejecutar({ tipo: "anexar_evento", paciente: seleccion, evento: e });
+}
+/** Informa de una migración de formato o de eventos guardados que no cumplen el esquema (se conservan sin modificar). */
+function avisoDeLectura(dx) {
+  const n = dx.no_conformes.length;
+  if (n) {
+    const ej = dx.no_conformes[0];
+    $("mensaje").textContent = `${n} evento${n === 1 ? "" : "s"} guardado${n === 1 ? "" : "s"} no cumple${n === 1 ? "" : "n"} el esquema actual (p. ej. ${ej.paciente} · ${ej.tipo}: ${ej.motivo}). Se conservan sin modificar; revíselos antes de usar esos datos.`;
+    $("mensaje").className = "error";
+  } else if (dx.migrada_desde) {
+    $("mensaje").textContent = "Sus datos tenían el formato anterior y se han leído sin cambios. Se actualizarán con la próxima acción que guarde, conservando una copia de la base anterior.";
+    $("mensaje").className = "success";
+  }
 }
 function flash(s) {
   $("mensaje").textContent = s;
@@ -134,7 +143,7 @@ function tabla(ps) {
       .map((p) => {
         const c = cobertura(p, fin, reglas),
           a = evaluarSenales(p, fin, reglas);
-        return `<tr><td><strong>${p.id}</strong>${p.escenario ? `<span class="case-profile">${esc(p.escenario.titulo)}</span>` : ""}<br><small class="muted">${esc(nombreTar(tratamientoHasta(p,fin)))}</small></td><td>${badge("Nivel " + nivelCorte(p))}</td><td>${pct(c)}${c.excluidos.length ? '<br><small>PDC oral · periodos intramusculares excluidos</small>' : ''}<div class="bar"><div class="bar-fill" data-pct="${c.pdc === null ? 0 : c.pdc * 100}"></div></div></td><td>${badge(a.filter(s=>s.categoria!=="aviso" && s.estado_gestion==="pendiente").length + " pendientes", a.some(s=>s.categoria!=="aviso" && s.estado_gestion==="pendiente"))}</td><td>${boton("abrir", "Ver caso", p.id)}</td></tr>`;
+        return `<tr><td><strong>${esc(p.id)}</strong>${p.escenario ? `<span class="case-profile">${esc(p.escenario.titulo)}</span>` : ""}<br><small class="muted">${esc(nombreTar(tratamientoHasta(p,fin)))}</small></td><td>${badge("Nivel " + nivelCorte(p))}</td><td>${pct(c)}${c.excluidos.length ? '<br><small>PDC oral · periodos intramusculares excluidos</small>' : ''}<div class="bar"><div class="bar-fill" data-pct="${c.pdc === null ? 0 : c.pdc * 100}"></div></div></td><td>${badge(a.filter(s=>s.categoria!=="aviso" && s.estado_gestion==="pendiente").length + " pendientes", a.some(s=>s.categoria!=="aviso" && s.estado_gestion==="pendiente"))}</td><td>${boton("abrir", "Ver caso", p.id)}</td></tr>`;
       })
       .join("") ||
     '<tr><td colspan="5">No hay casos. Cree un caso sintético para comenzar.</td></tr>'
@@ -190,7 +199,7 @@ function visitas(p) {
       .filter((e) => e.tipo === "visita" && aplicable(e,fin))
       .map(
         (v) =>
-          `<div class="item"><strong>${v.fecha}</strong><p>${Object.entries(
+          `<div class="item"><strong>${esc(v.fecha)}</strong><p>${Object.entries(
             v.experiencia,
           )
             .map(([k, x]) => `${esc(k)}: ${esc(x)}`)
@@ -211,7 +220,7 @@ function listadoInformes(ps) {
                 ? "Hoja para el paciente"
                 : estadoComunicacion(p, i.id, fin),
               next = paciente ? null : estado === estadoComunicacion(p,i.id) ? ESTADOS[ESTADOS.indexOf(estado) + 1] : null;
-            return `<article class="card"><div class="section-head"><h2>${esc(p.id)} · ${i.fecha}</h2>${badge(estado)}</div><p class="muted">${paciente ? "Instrucciones revisadas · Hoja fija de demostración" : "Informe profesional fijo · circuito de comunicación simulado"}</p><div class="actions">${boton("ver-informe", "Ver e imprimir", p.id + "|" + i.id)}${!paciente ? boton("copiar-informe", "Copiar para historia clínica", p.id + "|" + i.id) : ""}${boton("json-informe", "Descargar JSON", p.id + "|" + i.id)}${next ? boton("estado", "Simular: " + next, p.id + "|" + i.id) : ""}</div>${
+            return `<article class="card"><div class="section-head"><h2>${esc(p.id)} · ${esc(i.fecha)}</h2>${badge(estado)}</div><p class="muted">${paciente ? "Instrucciones revisadas · Hoja fija de demostración" : "Informe profesional fijo · circuito de comunicación simulado"}</p><div class="actions">${boton("ver-informe", "Ver e imprimir", p.id + "|" + i.id)}${!paciente ? boton("copiar-informe", "Copiar para historia clínica", p.id + "|" + i.id) : ""}${boton("json-informe", "JSON completo", p.id + "|" + i.id)}${boton("json-informe-minimo", "JSON mínimo", p.id + "|" + i.id)}${next ? boton("estado", "Simular: " + next, p.id + "|" + i.id) : ""}</div>${
               !paciente
                 ? `<details><summary>Trazabilidad de comunicación</summary><p class="muted">${esc(i.registrado)} · pendiente</p>${p.eventos
                     .filter(
@@ -220,7 +229,7 @@ function listadoInformes(ps) {
                     )
                     .map(
                       (e) =>
-                        `<p class="muted">${esc(e.registrado)} · ${e.estado}</p>`,
+                        `<p class="muted">${esc(e.registrado)} · ${esc(e.estado)}</p>`,
                     )
                     .join("")}</details>`
                 : ""
@@ -272,7 +281,7 @@ function recursos() {
 function caso(p) {
   const c = cobertura(p, fin, reglas),
     a = evaluarSenales(p, fin, reglas);
-  let html = `<p class="muted"><a href="#pacientes">← Todos los casos</a> / ${p.id} · Solo datos sintéticos</p>${p.escenario ? `<div class="notice cohorte-caption"><strong>${esc(p.escenario.titulo)}</strong><br>${esc(p.escenario.descripcion)}<br><small>Caso ficticio · ${esc(p.escenario.version)}</small></div>` : ""}<div class="tabs" role="group" aria-label="Secciones del caso">${[
+  let html = `<p class="muted"><a href="#pacientes">← Todos los casos</a> / ${esc(p.id)} · Solo datos sintéticos</p>${p.escenario ? `<div class="notice cohorte-caption"><strong>${esc(p.escenario.titulo)}</strong><br>${esc(p.escenario.descripcion)}<br><small>Caso ficticio · ${esc(p.escenario.version)}</small></div>` : ""}<div class="tabs" role="group" aria-label="Secciones del caso">${[
     ["resumen", "Resumen"],
     ["consulta", "Consulta y plan"],
     ["historia", "Historia longitudinal"],
@@ -287,11 +296,11 @@ function caso(p) {
     )
     .join("")}</div>`;
   if (tab === "resumen")
-    html += `<div class="grid"><section class="card"><div class="section-head"><h2>Situación del caso</h2>${badge("CMO " + nivelCorte(p))}</div><p>Último TAR registrado: <strong>${esc(nombreTar(tratamientoHasta(p,fin)))}</strong></p>${(tratamientoHasta(p,fin)?.medicamentos || []).map((m) => `<p class="muted"><a href="${enlaceCima(m.nregistro)}" target="_blank" rel="noopener noreferrer">Ficha CIMA ${esc(m.nregistro)} ↗</a> · CN ${esc(m.cn)} · Consulta ${esc(m.consultado.slice(0, 10))}</p>`).join("")}<p>Cobertura hasta ${fin} (excluido): <strong>${pct(c)}</strong> · ${c.cubiertos}/${c.total} días</p><div class="actions">${boton("tar", "Registrar cambio TAR")}${boton("nivel", "Registrar nivel CMO")}${boton("informe", "Generar informe simulado")}${boton("hoja-paciente", "Crear hoja para el paciente")}</div><h3>Señales explicables</h3><p class="muted">${a.filter(s=>s.categoria==="aviso").length} avisos metodológicos, separados de los pendientes asistenciales y de calidad de datos.</p>${a.map((x) => `<div class="notice warning"><strong>${esc(x.texto)}</strong><br><small>${esc(x.regla)} · ${esc(x.version)} · ${esc(x.categoria === "aviso" ? "Aviso metodológico" : x.categoria === "datos" ? "Calidad de datos" : "Señal asistencial")} · Gestión: ${esc(x.estado_gestion)}${x.reabierta ? " · Evidencias cambiadas: revisar de nuevo" : ""}</small>${x.gestion ? `<p>Motivo: ${esc(x.gestion.motivo)}</p>` : ""}${boton("gestionar-senal", "Gestionar: " + x.regla, x.regla)}</div>`).join("") || '<p class="muted">Sin señales bajo la configuración actual. No equivale a ausencia de problemas.</p>'}<div class="actions">${boton("revision", "Registrar revisión profesional simulada")}</div><p class="muted">Revisiones anteriores sin vínculo individual de señal (se conservan sin reinterpretarlas):<br>${p.eventos
+    html += `<div class="grid"><section class="card"><div class="section-head"><h2>Situación del caso</h2>${badge("CMO " + nivelCorte(p))}</div><p>Último TAR registrado: <strong>${esc(nombreTar(tratamientoHasta(p,fin)))}</strong></p>${(tratamientoHasta(p,fin)?.medicamentos || []).map((m) => `<p class="muted"><a href="${enlaceCima(m.nregistro)}" target="_blank" rel="noopener noreferrer">Ficha CIMA ${esc(m.nregistro)} ↗</a> · CN ${esc(m.cn)} · Consulta ${esc(m.consultado.slice(0, 10))}</p>`).join("")}<p>Cobertura hasta ${esc(fin)} (excluido): <strong>${pct(c)}</strong> · ${c.cubiertos}/${c.total} días</p><div class="actions">${boton("tar", "Registrar cambio TAR")}${boton("nivel", "Registrar nivel CMO")}${boton("informe", "Generar informe simulado")}${boton("hoja-paciente", "Crear hoja para el paciente")}</div><h3>Señales explicables</h3><p class="muted">${a.filter(s=>s.categoria==="aviso").length} avisos metodológicos, separados de los pendientes asistenciales y de calidad de datos.</p>${a.map((x) => `<div class="notice warning"><strong>${esc(x.texto)}</strong><br><small>${esc(x.regla)} · ${esc(x.version)} · ${esc(x.categoria === "aviso" ? "Aviso metodológico" : x.categoria === "datos" ? "Calidad de datos" : "Señal asistencial")} · Gestión: ${esc(x.estado_gestion)}${x.reabierta ? " · Evidencias cambiadas: revisar de nuevo" : ""}</small>${x.gestion ? `<p>Motivo: ${esc(x.gestion.motivo)}</p>` : ""}${boton("gestionar-senal", "Gestionar: " + x.regla, x.regla)}</div>`).join("") || '<p class="muted">Sin señales bajo la configuración actual. No equivale a ausencia de problemas.</p>'}<div class="actions">${boton("revision", "Registrar revisión profesional simulada")}</div><p class="muted">Revisiones anteriores sin vínculo individual de señal (se conservan sin reinterpretarlas):<br>${p.eventos
       .filter((e) => e.tipo === "revision_alertas" && aplicable(e,fin))
       .map(
         (e) =>
-          `Revisión ${e.registrado}: ${esc(e.resultado)} (${e.alertas.length} señales, ${esc(e.reglas.version)})`,
+          `Revisión ${esc(e.registrado)}: ${esc(e.resultado)} (${e.alertas.length} señales, ${esc(e.reglas.version)})`,
       )
       .join(
         "<br>",
@@ -304,15 +313,15 @@ function caso(p) {
       .reverse()
       .map(
         (e) =>
-          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", estado_actuacion: "Actuación realizada", consulta: "Consulta y plan", seguimiento_consulta: "Seguimiento del plan", gestion_senal: "Gestión de señal", correccion_dispensacion: "Corrección de dispensación", evaluacion_adherencia: "Valoración manual de adherencia", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.resultado || e.texto || "")}</p><small>Fecha efectiva: ${esc(e.tipo === "importacion" ? "Según las fechas de sus filas" : e.fecha || "No disponible; referencia de registro")} · Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "gestion_senal" ? `<p>${esc(e.regla)} · Motivo: ${esc(e.motivo)}${e.actuacion ? ` · Actuación ${esc(e.actuacion)}` : ""}</p>` : ""}${e.tipo === "correccion_dispensacion" ? `<p>Referencia ${esc(e.referencia)} · Motivo: ${esc(e.motivo)} · ${e.sustitucion ? "Sustitución" : "Anulación"}</p>` : ""}${e.tipo === "importacion" ? `<p>${e.decisiones?.length ? `Decisiones de conciliación: ${e.decisiones.map(d=>`${esc(d.accion)} · fila ${d.linea} · ${esc(d.motivo)}${d.referencia ? ` · Referencia ${esc(d.referencia)}` : ""}`).join("<br>")}<br>` : ""}${e.filas.filter(f=>f.fecha<=fin).length} filas hasta el corte de ${e.filas.length} aceptadas en el lote · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
+          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", estado_actuacion: "Actuación realizada", consulta: "Consulta y plan", seguimiento_consulta: "Seguimiento del plan", gestion_senal: "Gestión de señal", correccion_dispensacion: "Corrección de dispensación", evaluacion_adherencia: "Valoración manual de adherencia", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.resultado || e.texto || "")}</p><small>Fecha efectiva: ${esc(e.tipo === "importacion" ? "Según las fechas de sus filas" : e.fecha || "No disponible; referencia de registro")} · Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "gestion_senal" ? `<p>${esc(e.regla)} · Motivo: ${esc(e.motivo)}${e.actuacion ? ` · Actuación ${esc(e.actuacion)}` : ""}</p>` : ""}${e.tipo === "correccion_dispensacion" ? `<p>Referencia ${esc(e.referencia)} · Motivo: ${esc(e.motivo)} · ${e.sustitucion ? "Sustitución" : "Anulación"}</p>` : ""}${e.tipo === "importacion" ? `<p>${e.decisiones?.length ? `Decisiones de conciliación: ${e.decisiones.map(d=>`${esc(d.accion)} · fila ${esc(d.linea)} · ${esc(d.motivo)}${d.referencia ? ` · Referencia ${esc(d.referencia)}` : ""}`).join("<br>")}<br>` : ""}${e.filas.filter(f=>f.fecha<=fin).length} filas hasta el corte de ${e.filas.length} aceptadas en el lote · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
       )
       .join("")}</section>`;
   if (tab === "adherencia")
-    html += `<section class="card"><div class="section-head"><h2>Cobertura del TAR oral completo</h2>${boton("dispensacion-manual", "Registrar dispensación manual")}${boton("csv", "Importar CSV")}</div><p class="muted">Ventana ${reglas.ventana} días; final excluido. Arrastre dentro del mismo episodio y componente, sin traslado entre TAR. En pautas multicomponente deben coincidir todos los componentes.</p><p><strong>${pct(c)}</strong> · ${c.cubiertos} días cubiertos / ${c.total} días evaluables</p><div class="table-wrap"><table><thead><tr><th>Episodio</th><th>Intervalo [inicio, fin)</th><th>Días cubiertos</th></tr></thead><tbody>${c.detalle.map((d) => `<tr><td>${esc(d.tar)}<br><small>${d.episodio}</small></td><td>${d.inicio} → ${d.fin_exclusivo}</td><td>${d.cubiertos}/${d.total}</td></tr>`).join("")}</tbody></table></div><div class="actions">${boton("plantilla", "Descargar CSV de ejemplo")}</div><p class="muted">Los episodios CIMA usan componentes CIMA-número de registro. Las etiquetas A, B, C y D se conservan en los ejemplos iniciales; los días se declaran expresamente. No se calcula dosis ni equivalencia terapéutica.</p></section>`;
+    html += `<section class="card"><div class="section-head"><h2>Cobertura del TAR oral completo</h2>${boton("dispensacion-manual", "Registrar dispensación manual")}${boton("csv", "Importar CSV")}</div><p class="muted">Ventana ${reglas.ventana} días; final excluido. Arrastre dentro del mismo episodio y componente, sin traslado entre TAR. En pautas multicomponente deben coincidir todos los componentes.</p><p><strong>${pct(c)}</strong> · ${c.cubiertos} días cubiertos / ${c.total} días evaluables</p><div class="table-wrap"><table><thead><tr><th>Episodio</th><th>Intervalo [inicio, fin)</th><th>Días cubiertos</th></tr></thead><tbody>${c.detalle.map((d) => `<tr><td>${esc(d.tar)}<br><small>${esc(d.episodio)}</small></td><td>${esc(d.inicio)} → ${esc(d.fin_exclusivo)}</td><td>${d.cubiertos}/${d.total}</td></tr>`).join("")}</tbody></table></div><div class="actions">${boton("plantilla", "Descargar CSV de ejemplo")}</div><p class="muted">Los episodios CIMA usan componentes CIMA-número de registro. Las etiquetas A, B, C y D se conservan en los ejemplos iniciales; los días se declaran expresamente. No se calcula dosis ni equivalencia terapéutica.</p></section>`;
   if (tab === "experiencia")
     html += `<section class="card"><div class="section-head"><h2>Escuchar y registrar</h2>${boton("visita", "Añadir visita")}</div><p class="muted">Opciones cerradas para demostración. No son un cuestionario ni una escala validados.</p>${visitas(p)}</section>`;
   if (tab === "intervenciones")
-    html += `<section class="card"><h2>Biblioteca CMO · Nivel ${nivelCorte(p)}</h2><div class="notice warning">Catálogo acumulativo de la referencia. Existe una discrepancia declarada con la herramienta de origen, pendiente de revisión clínica. La selección corresponde al profesional.</div>${(biblioteca.niveles[nivelCorte(p)]?.intervenciones || []).map((x, i) => `<div class="item"><p>${esc(x.texto)}</p>${boton("actuacion", "Añadir a pendientes", String(i))}</div>`).join("")}<h3>Actuaciones del caso</h3>${p.eventos
+    html += `<section class="card"><h2>Biblioteca CMO · Nivel ${esc(nivelCorte(p))}</h2><div class="notice warning">Catálogo acumulativo de la referencia. Existe una discrepancia declarada con la herramienta de origen, pendiente de revisión clínica. La selección corresponde al profesional.</div>${(biblioteca.niveles[nivelCorte(p)]?.intervenciones || []).map((x, i) => `<div class="item"><p>${esc(x.texto)}</p>${boton("actuacion", "Añadir a pendientes", String(i))}</div>`).join("")}<h3>Actuaciones del caso</h3>${p.eventos
       .filter((e) => e.tipo === "actuacion" && aplicable(e,fin))
       .map(
         (e) =>
@@ -332,7 +341,7 @@ function caso(p) {
   return html;
 }
 function modelo() {
-  return `<section class="card"><h2>Modelo CMO</h2><p class="intro">Capacidad, Motivación y Oportunidad: la tecnología apoya la continuidad de la atención, y la valoración corresponde al profesional.</p><h3>Reglas de demostración · ${esc(reglas.version)}</h3><p>Ventana: ${reglas.ventana} días · Parámetro de señal: ${Math.round(reglas.umbral * 100)} %</p><p class="muted">Proceden de reglas v0.2.0 del preparador: pendientes de validación. La cobertura usa inicio de tratamiento explícito y unión por componente con intersección del TAR completo. No estima ingesta, supresión virológica ni riesgo clínico. El TAR intramuscular solo se registra como catálogo: se excluye del PDC oral y no se calculan ventanas ni administraciones. No incluye hospitalizaciones ni dispensación externa.</p>${boton("reglas", "Configurar parámetros de demostración")}<h3>Privacidad y almacenamiento</h3><p class="muted">Sin campos de nombres, documentos o contactos. Las instrucciones de la hoja del paciente son texto local y deben ser exclusivamente sintéticas. Los casos se generan con prefijo DEMO. Los datos se guardan en este navegador; no hay envío de casos, analítica, backend clínico o API generativa. Solo las búsquedas explícitas de medicamentos consultan CIMA (AEMPS), sin datos del caso. El almacenamiento local no ofrece las garantías de un sistema sanitario.</p><h3>Fuentes y autoría</h3><p class="muted">Autor: Dr. Ramón Morillo Verdugo. Adaptaciones CMO: Sociedad Española de Farmacia Hospitalaria (SEFH). Biblioteca y guion conservan sus metadatos originales. No se declara validación clínica ni licencia de terceros no otorgada.</p><div class="actions">${boton("exportar", "Exportar demostración JSON")}</div></section>`;
+  return `<section class="card"><h2>Modelo CMO</h2><p class="intro">Capacidad, Motivación y Oportunidad: la tecnología apoya la continuidad de la atención, y la valoración corresponde al profesional.</p><h3>Reglas de demostración · ${esc(reglas.version)}</h3><p>Ventana: ${reglas.ventana} días · Parámetro de señal: ${Math.round(reglas.umbral * 100)} %</p><div class="table-wrap" id="registroReglas"><table><caption class="muted">Registro de reglas aplicadas (src/reglas.js). Ninguna regla está validada clínicamente.</caption><thead><tr><th scope="col">Regla</th><th scope="col">Tipo</th><th scope="col">Versión</th><th scope="col">Estado de validación</th></tr></thead><tbody>${fichasAplicadas(reglas).map((f) => `<tr><td><code>${esc(f.id)}</code></td><td>${f.tipo === "metrica" ? "Métrica" : "Señal"}</td><td>${esc(f.version)}</td><td>${esc(f.estado_validacion)}</td></tr>`).join("")}</tbody></table></div><p class="muted">Proceden de reglas v0.2.0 del preparador: pendientes de validación. La cobertura usa inicio de tratamiento explícito y unión por componente con intersección del TAR completo. No estima ingesta, supresión virológica ni riesgo clínico. El TAR intramuscular solo se registra como catálogo: se excluye del PDC oral y no se calculan ventanas ni administraciones. No incluye hospitalizaciones ni dispensación externa.</p>${boton("reglas", "Configurar parámetros de demostración")}<h3>Privacidad y almacenamiento</h3><p class="muted">Sin campos de nombres, documentos o contactos. Las instrucciones de la hoja del paciente son texto local y deben ser exclusivamente sintéticas. Los casos se generan con prefijo DEMO. Los datos se guardan en este navegador; no hay envío de casos, analítica, backend clínico o API generativa. Solo las búsquedas explícitas de medicamentos consultan CIMA (AEMPS), sin datos del caso. El almacenamiento local no ofrece las garantías de un sistema sanitario.</p><h3>Fuentes y autoría</h3><p class="muted">Autor: Dr. Ramón Morillo Verdugo. Adaptaciones CMO: Sociedad Española de Farmacia Hospitalaria (SEFH). Biblioteca y guion conservan sus metadatos originales. No se declara validación clínica ni licencia de terceros no otorgada.</p><div class="actions">${boton("exportar", "Exportar demostración JSON")}</div></section>`;
 }
 function render() {
   const route = location.hash.slice(1) || "inicio";
@@ -412,7 +421,7 @@ function render() {
   $("contenido").innerHTML =
     (publica
       ? ""
-      : `<label class="no-print filtro">Fecha de corte de la evaluación<input id="corte" type="date" value="${fin}"></label>`) +
+      : `<label class="no-print filtro">Fecha de corte de la evaluación<input id="corte" type="date" value="${esc(fin)}"></label>`) +
     html + (publica ? "" : '<p class="muted">Hechos hasta el corte inclusive; cobertura [inicio, corte), con el día de corte excluido. Reconstrucción con la información disponible hoy y correcciones retrospectivas. Si falta fecha efectiva, se usa la fecha de registro como referencia; los datos sin ninguna fecha no se atribuyen a un periodo histórico.</p>');
   conectarCohorte(db.pacientes, fin, reglas);
   conectarAgenda(db.pacientes, fin);
@@ -438,12 +447,12 @@ $("nuevo").onclick = () => {
       ) +
       '<p class="muted">Los escenarios traen un nivel, visitas y tratamientos ficticios. No se copian datos de otro caso ni se consulta CIMA automáticamente.</p>',
     (v) => {
-      guardar(
+      const r = ejecutar(
         v.perfil === "blanco"
-          ? crearPaciente(db, v.nivel, fin)
-          : crearCasoEscenario(db, v.perfil),
+          ? { tipo: "crear_caso", nivel: v.nivel, fecha_nivel: fin }
+          : { tipo: "crear_caso_escenario", escenario: v.perfil },
       );
-      location.hash = "caso/" + db.pacientes.at(-1).id;
+      location.hash = "caso/" + r.paciente;
       tab = "resumen";
     },
   );
@@ -466,18 +475,17 @@ document.addEventListener("click", async (ev) => {
     id = b.dataset.id,
     p = paciente();
   try {
-    if (a === "consulta-guiada") abrirConsultaGuiada({ db, id:seleccion, fin, reglas, biblioteca, modal, guardar });
+    if (a === "consulta-guiada") abrirConsultaGuiada({ db, id:seleccion, fin, reglas, biblioteca, modal, ejecutar });
     if (a === "seguimiento-consulta") {
       const [pid,cid]=id.includes("|")?id.split("|"):[seleccion,id];
-      abrirSeguimientoConsulta({db,id:pid,consulta:cid,fin,modal,guardar});
+      abrirSeguimientoConsulta({db,id:pid,consulta:cid,fin,modal,ejecutar});
     }
     if (a === "desktop-biblioteca") { tab = "intervenciones"; render(); $("biblioteca-cmo").scrollIntoView(); }
     if (a === "desktop-informes") { tab = "informes"; render(); }
     if (a === "actualizar-cohorte") {
-      const prev = db.pacientes.length;
-      guardar(incorporarCohorte(db));
+      const { anadidos } = ejecutar({ tipo: "actualizar_cohorte" });
       flash(
-        `${db.pacientes.length - prev} casos nuevos añadidos; el histórico anterior se conserva.`,
+        `${anadidos} casos nuevos añadidos; el histórico anterior se conserva.`,
       );
     }
     if (a === "abrir") {
@@ -490,7 +498,7 @@ document.addEventListener("click", async (ev) => {
     if (a === "nivel")
       modal(
         "Registrar nueva asignación CMO",
-        campo("fecha", "Fecha efectiva", `<input name="fecha" type="date" value="${fin}" required>`) + campo(
+        campo("fecha", "Fecha efectiva", `<input name="fecha" type="date" value="${esc(fin)}" required>`) + campo(
           "nivel",
           "Nivel asignado (no se calcula)",
           select("nivel", ["1", "2", "3"]),
@@ -503,7 +511,7 @@ document.addEventListener("click", async (ev) => {
         campo(
           "fecha",
           "Fecha de visita",
-          `<input name="fecha" type="date" value="${fin}" required>`,
+          `<input name="fecha" type="date" value="${esc(fin)}" required>`,
         ) +
           Object.entries(EXPERIENCIA)
             .map(([k, v]) =>
@@ -578,7 +586,7 @@ document.addEventListener("click", async (ev) => {
     if (a === "hoja-paciente")
       modal(
         "Crear hoja para el paciente",
-        `<p class="muted">Escriba solo instrucciones sintéticas ya revisadas. No incluya nombres ni información real. CIMA no determina la pauta ni genera estas instrucciones.</p><label>Instrucciones específicas acordadas<textarea name="instrucciones" maxlength="2000" required placeholder="Redacte aquí los acuerdos e instrucciones del caso ficticio."></textarea></label><label>Próxima cita (opcional)<input name="proxima_cita" type="date" min="${fin}"></label><label class="check-line"><input type="checkbox" name="incluir_recurso" checked> Incluir MAPEX-ADHEFAR Hub como recurso complementario</label><label class="check-line"><input type="checkbox" name="revisado" required> He revisado las instrucciones y confirmo que solo contienen datos sintéticos.</label>`,
+        `<p class="muted">Escriba solo instrucciones sintéticas ya revisadas. No incluya nombres ni información real. CIMA no determina la pauta ni genera estas instrucciones.</p><label>Instrucciones específicas acordadas<textarea name="instrucciones" maxlength="2000" required placeholder="Redacte aquí los acuerdos e instrucciones del caso ficticio."></textarea></label><label>Próxima cita (opcional)<input name="proxima_cita" type="date" min="${esc(fin)}"></label><label class="check-line"><input type="checkbox" name="incluir_recurso" checked> Incluir MAPEX-ADHEFAR Hub como recurso complementario</label><label class="check-line"><input type="checkbox" name="revisado" required> He revisado las instrucciones y confirmo que solo contienen datos sintéticos.</label>`,
         (v) => {
           add(
             informePaciente(
@@ -604,23 +612,37 @@ document.addEventListener("click", async (ev) => {
       flash("Informe fijado. Comunicación pendiente; no se ha enviado.");
     }
     if (
-      ["estado", "json-informe", "ver-informe", "copiar-informe"].includes(a)
+      ["estado", "json-informe", "json-informe-minimo", "ver-informe", "copiar-informe"].includes(a)
     ) {
       const [pid, iid] = id.split("|"),
         pp = db.pacientes.find((p) => p.id === pid),
         i = pp.eventos.find((e) => e.id === iid);
       if (a === "estado") {
         const s = estadoComunicacion(pp, iid, fin);
-        guardar(
-          anexar(db, pid, {
+        ejecutar({
+          tipo: "anexar_evento",
+          paciente: pid,
+          evento: {
             tipo: "estado_comunicacion",
             fecha: fin,
             informe: iid,
             estado: ESTADOS[ESTADOS.indexOf(s) + 1],
+          },
+        });
+      }
+      if (a === "json-informe" || a === "json-informe-minimo") {
+        const minimo = a === "json-informe-minimo";
+        descargar(
+          await empaquetar({
+            tipo: i.tipo,
+            contenido: minimo ? informeMinimo(i) : i,
+            exportado: new Date().toISOString().slice(0, 10),
+            version: VERSION,
+            modo: minimo ? "minimo" : "completo",
           }),
+          `${pid}-informe${minimo ? "-minimo" : ""}.json`,
         );
       }
-      if (a === "json-informe") descargar(i, `${pid}-informe.json`);
       if (a === "ver-informe") mostrarInforme(i);
       if (a === "copiar-informe") {
         mostrarInforme(i);
@@ -628,7 +650,10 @@ document.addEventListener("click", async (ev) => {
       }
     }
     if (a === "exportar")
-      descargar({ ...db, reglas }, "vihconectados-demo.json");
+      descargar(
+        await empaquetar({ tipo: "base", contenido: { ...db, reglas }, exportado: new Date().toISOString().slice(0, 10), version: VERSION, modo: "completo" }),
+        "vihconectados-demo.json",
+      );
     if (a === "reglas")
       modal(
         "Parámetros demostrativos",
@@ -643,14 +668,9 @@ document.addEventListener("click", async (ev) => {
             `<input name="umbral" type="number" min="0" max="100" step="0.1" value="${reglas.umbral * 100}" required>`,
           ),
         (v) => {
-          const r = {
-            ...REGLAS,
-            ventana: +v.ventana,
-            umbral: +v.umbral / 100,
-            version: "demo-local-" + Date.now(),
-          };
-          validarReglas(r);
-          reglas = r;
+          // Versión determinista y estado «modificado, sin validación»; no depende del reloj (A03).
+          const r = reglasConParametros(+v.ventana, +v.umbral / 100);
+          reglas = { ...r };
           sessionStorage.setItem("vih.reglas", JSON.stringify(r));
           render();
         },
@@ -687,17 +707,16 @@ try {
       return r.json();
     }),
   );
-  db = repo.leer();
-  if (!localStorage.getItem(repo.key)) {
-    db = demo();
-    repo.guardar(db);
-  }
+  db = repo.consultar();
+  if (!repo.hayDatos()) db = repo.ejecutar({ tipo: "sembrar_demo" }).db;
   const r = sessionStorage.getItem("vih.reglas");
   if (r) {
-    reglas = JSON.parse(r);
-    validarReglas(reglas);
+    // Se normaliza por si la sesión guardó una versión anterior (demo-local-<marca de tiempo>).
+    const g = JSON.parse(r);
+    reglas = { ...reglasConParametros(g.ventana, g.umbral) };
   }
   if (location.hash.startsWith("#panel/cmo/")) tab = "intervenciones";
+  avisoDeLectura(repo.diagnostico);
   render();
 } catch (e) {
   $("contenido").textContent =

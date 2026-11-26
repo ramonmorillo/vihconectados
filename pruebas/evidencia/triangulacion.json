@@ -1,0 +1,90 @@
+{
+  "formato": "vihconectados/triangulacion-propuesta@1",
+  "estado_revision": "PROPUESTA del auditor (actuación A15). SIN APROBAR por el comité clínico. No está conectada a la aplicación: describe cómo deberían compararse las fuentes cuando exista el motor de triangulación (backlog B09). Ningún texto de este fichero es una conclusión clínica.",
+  "principios": [
+    "Se comparan DATOS de fuentes distintas; el resultado describe si coinciden o no, nunca la conducta del paciente.",
+    "No se calcula ninguna puntuación ni índice compuesto: cada par de fuentes se presenta por separado.",
+    "Un dato ausente no se rellena: el resultado es «insuficiente».",
+    "Las hipótesis son posibles explicaciones que el profesional puede explorar; no se afirman.",
+    "Las acciones son solo de revisión; ninguna es una indicación terapéutica."
+  ],
+  "dimensiones": {
+    "DISP": {"nombre": "Disponibilidad de medicación (PDC de dispensación)", "niveles": {"alta": "favorable", "baja": "desfavorable", "no_evaluable": "insuficiente"}},
+    "AUTO": {"nombre": "Dificultades referidas por el paciente (autoinforme)", "niveles": {"sin_dificultades": "favorable", "con_dificultades": "desfavorable", "no_explorado": "insuficiente"}},
+    "VIR": {"nombre": "Resultado analítico de carga viral", "niveles": {"suprimida": "favorable", "no_suprimida": "desfavorable", "no_comparable": "no_comparable", "ausente": "insuficiente"}},
+    "ASIS": {"nombre": "Asistencia a la cita", "niveles": {"asistida": "favorable", "no_asistida": "desfavorable", "ausente": "insuficiente"}}
+  },
+  "pares": ["DISP×AUTO", "DISP×VIR", "DISP×ASIS", "AUTO×VIR", "AUTO×ASIS"],
+  "resultados": ["coherente_favorable", "coherente_desfavorable", "discordante", "insuficiente", "no_comparable"],
+  "acciones": {
+    "ninguna": "Sin acción de revisión derivada de esta comparación.",
+    "esperar_datos": "Falta algún dato o no es comparable; obtenerlo antes de interpretar.",
+    "verificar_calidad_de_datos": "Comprobar la calidad y la completitud de los datos antes de interpretar la discordancia.",
+    "explorar_con_el_paciente": "Explorar la situación con el paciente en la siguiente ocasión de contacto.",
+    "revision_profesional": "Revisión por un profesional con los datos que respaldan el resultado."
+  },
+  "hipotesis": {
+    "H-SUM-EXT": "Suministro obtenido fuera del registro del sistema (otra farmacia, receta externa o existencias previas).",
+    "H-CTX": "Días con ingreso hospitalario, suspensión o viaje que no constan en el sistema.",
+    "H-DAT": "Dato incompleto, desfasado o con error de captura o de importación.",
+    "H-AUTO-SESGO": "El autoinforme es una fuente declarativa y puede infradeclarar o sobredeclarar.",
+    "H-DIF-NO-REF": "Dificultades no referidas o no exploradas con suficiente detalle.",
+    "H-TOL": "Dificultades de tolerabilidad o de toma que pueden coexistir con medicación disponible.",
+    "H-ACC": "Barreras de acceso, logísticas o personales no relacionadas con la medicación.",
+    "H-DISP-NO-TOMA": "La disponibilidad de medicación no equivale a toma.",
+    "H-VIR-OTRA": "Factores virológicos o analíticos independientes de la toma, por ejemplo resistencias, interacciones o variación del resultado de laboratorio.",
+    "H-VIR-NO-CONCL": "Una analítica es un resultado indirecto y distante de la toma; no la mide.",
+    "H-VIR-TIEMPO": "La analítica no corresponde al periodo de disponibilidad evaluado.",
+    "H-CITA-OTRA": "Inasistencia por motivos ajenos a la medicación."
+  },
+  "regla_insuficiente": {"resultado": "insuficiente", "accion": "esperar_datos", "hipotesis": []},
+  "regla_no_comparable": {"resultado": "no_comparable", "accion": "esperar_datos", "hipotesis": ["H-VIR-TIEMPO"]},
+  "celdas": {
+    "DISP×AUTO": {
+      "favorable|favorable": {"resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []},
+      "favorable|desfavorable": {"resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-TOL", "H-ACC", "H-DISP-NO-TOMA"]},
+      "desfavorable|favorable": {"resultado": "discordante", "accion": "verificar_calidad_de_datos", "hipotesis": ["H-SUM-EXT", "H-CTX", "H-DAT", "H-AUTO-SESGO"]},
+      "desfavorable|desfavorable": {"resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}
+    },
+    "DISP×VIR": {
+      "favorable|favorable": {"resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []},
+      "favorable|desfavorable": {"resultado": "discordante", "accion": "revision_profesional", "hipotesis": ["H-VIR-OTRA", "H-DISP-NO-TOMA", "H-DAT"]},
+      "desfavorable|favorable": {"resultado": "discordante", "accion": "verificar_calidad_de_datos", "hipotesis": ["H-SUM-EXT", "H-CTX", "H-DAT", "H-VIR-NO-CONCL"]},
+      "desfavorable|desfavorable": {"resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}
+    },
+    "DISP×ASIS": {
+      "favorable|favorable": {"resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []},
+      "favorable|desfavorable": {"resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-ACC", "H-CITA-OTRA"]},
+      "desfavorable|favorable": {"resultado": "discordante", "accion": "verificar_calidad_de_datos", "hipotesis": ["H-SUM-EXT", "H-CTX", "H-DAT"]},
+      "desfavorable|desfavorable": {"resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}
+    },
+    "AUTO×VIR": {
+      "favorable|favorable": {"resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []},
+      "favorable|desfavorable": {"resultado": "discordante", "accion": "revision_profesional", "hipotesis": ["H-AUTO-SESGO", "H-DIF-NO-REF", "H-VIR-OTRA"]},
+      "desfavorable|favorable": {"resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-TOL", "H-VIR-NO-CONCL"]},
+      "desfavorable|desfavorable": {"resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}
+    },
+    "AUTO×ASIS": {
+      "favorable|favorable": {"resultado": "coherente_favorable", "accion": "ninguna", "hipotesis": []},
+      "favorable|desfavorable": {"resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-CITA-OTRA", "H-DIF-NO-REF", "H-ACC"]},
+      "desfavorable|favorable": {"resultado": "discordante", "accion": "explorar_con_el_paciente", "hipotesis": ["H-TOL", "H-ACC"]},
+      "desfavorable|desfavorable": {"resultado": "coherente_desfavorable", "accion": "revision_profesional", "hipotesis": []}
+    }
+  },
+  "efectos_suministro": {
+    "excluye_del_denominador": "Los días del intervalo se retiran del numerador y del denominador del PDC: no son evaluables.",
+    "aporta_cobertura": "Se trata como una dispensación: aporta días de suministro desde su fecha efectiva.",
+    "cierra_episodio": "El seguimiento termina en la fecha efectiva; los días posteriores dejan de ser evaluables.",
+    "marca_incertidumbre": "No cambia el cálculo; marca el periodo como dudoso para quien interprete el resultado."
+  },
+  "eventos_suministro": [
+    {"magnitud": "ingreso_hospitalario", "fuente": "contexto_clinico", "efecto": "excluye_del_denominador", "definicion": "Periodo de ingreso: la medicación la suministra el hospital y la dispensación ambulatoria no se consume.", "requiere": "intervalo [inicio, fin)", "con_ejemplo_numerico": true},
+    {"magnitud": "suspension_prescrita", "fuente": "contexto_clinico", "efecto": "excluye_del_denominador", "definicion": "Periodo en que el prescriptor indica no tomar el tratamiento (por ejemplo, una interrupción clínica).", "requiere": "intervalo [inicio, fin)", "con_ejemplo_numerico": true},
+    {"magnitud": "dias_suministro", "fuente": "dispensacion_externa", "efecto": "aporta_cobertura", "definicion": "Suministro obtenido fuera de la farmacia hospitalaria (otra farmacia, receta externa, otro centro) y registrado con sus días.", "requiere": "fecha, componente y días; sistema de origen identificado", "con_ejemplo_numerico": true},
+    {"magnitud": "stock_inicial", "fuente": "contexto_clinico", "efecto": "aporta_cobertura", "definicion": "Existencias con las que el paciente empieza el episodio, sin dispensación registrada.", "requiere": "fecha de inicio, componente y días", "con_ejemplo_numerico": true},
+    {"magnitud": "fin_de_seguimiento", "fuente": "contexto_clinico", "efecto": "cierra_episodio", "definicion": "Fallecimiento, traslado, pérdida de seguimiento o alta: el episodio termina en la fecha efectiva.", "requiere": "fecha efectiva y motivo codificado", "con_ejemplo_numerico": true},
+    {"magnitud": "suministro_viaje", "fuente": "contexto_clinico", "efecto": "aporta_cobertura", "definicion": "Dispensación de más días de los habituales por un viaje; se cuenta como cualquier dispensación y se marca como acumulación.", "requiere": "fecha y días", "con_ejemplo_numerico": false},
+    {"magnitud": "perdida_o_sustitucion", "fuente": "contexto_clinico", "efecto": "marca_incertidumbre", "definicion": "Pérdida, robo o deterioro con reposición: el suministro adicional no corresponde a consumo.", "requiere": "fecha y componente", "con_ejemplo_numerico": false},
+    {"magnitud": "transicion_con_solapamiento", "fuente": "contexto_clinico", "efecto": "marca_incertidumbre", "definicion": "Cambio de régimen con días en que coexisten dos regímenes; hoy el motor asigna los días al régimen nuevo.", "requiere": "intervalo [inicio, fin)", "con_ejemplo_numerico": false}
+  ]
+}

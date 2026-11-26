@@ -70,7 +70,7 @@ Obtenga el UUID y componentes válidos mediante **Descargar CSV de ejemplo** en 
 ## Arquitectura
 
 - `src/motor.js`: funciones puras de cobertura, CSV, señales y transiciones.
-- `src/almacen.js`: comandos que anexan eventos y puerto `leer()/guardar()` para sustituir el adaptador local.
+- `src/almacen.js`: comando `anexar` (esquemas cerrados de evento) y almacenamiento de bajo nivel. **Capas y puerto por comandos** (`consultar()` / `ejecutar(comando)`): `src/comandos.js`, `src/repositorio.js` y [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md); la lógica de formularios está en `src/conciliacion.js`, `src/eventos-formulario.js` y `src/seleccion-tar.js`.
 - `src/informes.js`: instantáneas y texto para historia; `src/vista-informes.js` y `src/informes.css`: composición A4 e impresión.
 - `src/cima.js` y `src/medicacion.js`: adaptador AEMPS y selección del TAR.
 - `src/recursos.js`: enlaces y atribución de MAPEX-ADHEFAR Hub.
@@ -81,7 +81,7 @@ Obtenga el UUID y componentes válidos mediante **Descargar CSV de ejemplo** en 
 - `servidor.mjs`: servidor de archivos con rutas permitidas y CSP; sin API de escritura.
 - `datos/`: copias literales de biblioteca y guion VIH con sus metadatos de origen.
 
-Esquemas `vihconectados/demo@1`, `vihconectados/informe@1` y `vihconectados/informe-paciente@1`; versión de aplicación 0.3.0. Los datos guardados de la versión anterior se conservan sin migración destructiva. El adaptador institucional futuro necesita comandos validados en servidor, concurrencia y autorización; reemplazar localStorage por una API no basta.
+Esquemas `vihconectados/demo@2` (la aplicación sigue leyendo y migra `demo@1`; véase `docs/ESQUEMAS_EVENTOS.md`), `vihconectados/informe@1` y `vihconectados/informe-paciente@1`; versión de aplicación 0.3.0. Los datos guardados de la versión anterior se conservan sin migración destructiva. El adaptador institucional futuro necesita comandos validados en servidor, concurrencia y autorización; reemplazar localStorage por una API no basta.
 
 ## Pruebas
 

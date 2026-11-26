@@ -18,7 +18,9 @@ import {
 import { informe } from "../src/informes.js";
 import { demo } from "../src/demo.js";
 function base(tar = "TAR_A") {
-  let d = crearPaciente(vacio());
+  // Nivel explícito: crearPaciente ya no asigna "3" por defecto (A06). Se conserva el fixture original,
+  // cuyas pruebas localizan el episodio en eventos[1].
+  let d = crearPaciente(vacio(), "3");
   d = anexar(d, "DEMO-001", { tipo: "tratamiento", fecha: "2026-01-01", tar });
   return d;
 }

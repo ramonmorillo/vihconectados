@@ -1,0 +1,9 @@
+{
+  "resourceType": "MedicationDispense",
+  "id": "ejemplo-dispensacion",
+  "status": "completed",
+  "medicationCodeableConcept": { "text": "Medicamento SINTÉTICO A (componente 1 del régimen)" },
+  "subject": { "reference": "Patient/ejemplo-paciente" },
+  "whenHandedOver": "2025-01-10",
+  "daysSupply": { "value": 30, "unit": "d", "system": "http://unitsofmeasure.org", "code": "d" }
+}

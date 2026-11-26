@@ -1,0 +1,14 @@
+{
+  "formato": "vihconectados/protocolos-escalado-propuesta@1",
+  "estado_revision": "PROPUESTA del auditor (actuación A14). SIN APROBAR. El responsable, el plazo y la prioridad de cada protocolo son [DATO PENDIENTE]: los fija el comité clínico en el protocolo de respuesta (docs/strategy/CLINICAL_GOVERNANCE.md §5). Este fichero no propone ningún valor; solo declara qué protocolos hacen falta y su estado real.",
+  "protocolos": [
+    {"id": "PR-REVISION-FARMACIA", "descripcion": "Revisión por un profesional de una dificultad o de una molestia que el paciente refiere con su tratamiento.", "responsable_funcion": null, "plazo": null, "prioridad": null, "aprobado": false, "aprobacion": {"comite": null, "acta": null, "fecha": null}},
+    {"id": "PR-ACCESO", "descripcion": "Revisión de una barrera de acceso a la medicación que el paciente refiere.", "responsable_funcion": null, "plazo": null, "prioridad": null, "aprobado": false, "aprobacion": {"comite": null, "acta": null, "fecha": null}},
+    {"id": "PR-CITA-LA", "descripcion": "Cita de administración de un tratamiento inyectable sin confirmar, o a la que el paciente refiere que no podrá acudir.", "responsable_funcion": null, "plazo": null, "prioridad": null, "aprobado": false, "aprobacion": {"comite": null, "acta": null, "fecha": null}},
+    {"id": "PR-CONTACTO", "descripcion": "El paciente pide que alguien de su equipo se ponga en contacto con él.", "responsable_funcion": null, "plazo": null, "prioridad": null, "aprobado": false, "aprobacion": {"comite": null, "acta": null, "fecha": null}}
+  ],
+  "avisos": [
+    {"id": "AVISO-NO-URGENTE", "texto": "Este cuestionario no es un servicio de urgencias y no sustituye la atención de su equipo. Si cree que necesita atención urgente, acuda a urgencias o llame al servicio de emergencias.", "aprobado": false},
+    {"id": "CIERRE-GENERICO", "texto": "Gracias por responder. Su equipo revisará sus respuestas.", "aprobado": false}
+  ]
+}

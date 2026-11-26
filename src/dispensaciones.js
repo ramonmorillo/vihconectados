@@ -2,7 +2,7 @@
 export function historialDispensaciones(p) {
   const filas = [];
   for (const e of p.eventos) {
-    if (e.tipo === 'importacion') e.filas.forEach((f,i) => filas.push({...f, referencia: `${e.id}:${i}`, lote: e.id, fuente: e.fuente || 'Importación anterior', registrado: e.registrado, estado: 'vigente'}));
+    if (e.tipo === 'importacion') (Array.isArray(e.filas) ? e.filas : []).forEach((f,i) => filas.push({...f, referencia: `${e.id}:${i}`, lote: e.id, fuente: e.fuente || 'Importación anterior', registrado: e.registrado, estado: 'vigente'}));
     if (e.tipo === 'correccion_dispensacion') {
       const original = filas.find(f => f.referencia === e.referencia);
       if (!original) continue;

@@ -1,0 +1,9 @@
+{
+  "resourceType": "MedicationRequest",
+  "id": "ejemplo-tratamiento",
+  "status": "active",
+  "intent": "order",
+  "medicationCodeableConcept": { "text": "Régimen SINTÉTICO (tratamiento antirretroviral de demostración)" },
+  "subject": { "reference": "Patient/ejemplo-paciente" },
+  "authoredOn": "2025-01-01"
+}

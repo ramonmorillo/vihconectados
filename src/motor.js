@@ -1,13 +1,10 @@
 import { ultimoEvento, aplicable, fechaEfectiva } from "./temporal.js";
 import { dispensacionesVigentes } from "./dispensaciones.js";
+import { reglasPorDefecto, limitesParametros, estadoValidacionRegla } from "./reglas.js";
 /** Motor demostrativo v1. Fechas UTC; intervalos [inicio, fin). Sin inferencia de toma. */
 export const VERSION = "0.3.0";
-export const REGLAS = Object.freeze({
-  version: "demo-1",
-  ventana: 180,
-  umbral: 0.9,
-  validacion: "Pendiente de validación profesional",
-});
+/** Parámetros vigentes: proceden del registro versionado de reglas (src/reglas.js), no se definen aquí. */
+export const REGLAS = reglasPorDefecto();
 export const CATALOGOS = Object.freeze({
   TAR_A: ["A"],
   TAR_B: ["B"],
@@ -56,13 +53,14 @@ export function fecha(s) {
 }
 export const iso = (n) => new Date(n * 86400000).toISOString().slice(0, 10);
 export function validarReglas(r) {
+  const lim = limitesParametros();
   if (
     !Number.isInteger(r.ventana) ||
-    r.ventana < 1 ||
-    r.ventana > 730 ||
+    r.ventana < lim.ventana.min ||
+    r.ventana > lim.ventana.max ||
     !Number.isFinite(r.umbral) ||
-    r.umbral < 0 ||
-    r.umbral > 1
+    r.umbral < lim.umbral.min ||
+    r.umbral > lim.umbral.max
   )
     throw Error("Parámetros fuera de rango");
 }
@@ -82,9 +80,6 @@ export function nombreTar(ep) {
   return (
     ep?.medicamentos?.map((m) => m.nombre).join(" + ") || ep?.tar || "Sin TAR"
   );
-}
-export function nivel(p) {
-  return p.eventos.filter((e) => e.tipo === "nivel").at(-1)?.nivel || "3";
 }
 export function dispensaciones(p) {
   return dispensacionesVigentes(p);
@@ -210,7 +205,7 @@ export function alertas(p, fin, r = REGLAS) {
   const c = cobertura(p, fin, r),
     lista = [];
   if (c.excluidos.length)
-    lista.push({ regla: "tar_inyectable_no_evaluable", texto: "El periodo de TAR intramuscular se excluye del PDC oral. No se evalúan asistencia, administración ni ventanas de inyección." });
+    lista.push({ regla: "tar_inyectable_no_evaluable", texto: "TAR intramuscular NO MONITORIZADO: el periodo se excluye del PDC oral y no se evalúan asistencia, administración ni ventanas de inyección. Una administración perdida o retrasada no generará señal; requiere seguimiento profesional manual." });
   if (c.pdc === null && !c.excluidos.length)
     lista.push({
       regla: "sin_datos",
@@ -262,7 +257,7 @@ export function alertas(p, fin, r = REGLAS) {
   return lista.map((x) => ({
     ...x,
     version: r.version,
-    estado: "Pendiente de validación profesional",
+    estado: estadoValidacionRegla(x.regla, r),
   }));
 }
 export function transicion(actual, siguiente) {

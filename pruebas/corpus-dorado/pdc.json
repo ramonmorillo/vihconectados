@@ -1,0 +1,302 @@
+{
+  "formato": "vihconectados/corpus-dorado-pdc@1",
+  "estado_revision": "PROPUESTO por el auditor; resultados esperados deducidos a mano de la definición operativa ANTES de ejecutar el motor. PENDIENTE de revisión y firma por un segundo revisor independiente (véase README.md).",
+  "definicion": [
+    "Fechas UTC. Cada intervalo es [inicio, fin): el día de corte NO cuenta.",
+    "Ventana: inicio = max(corte - ventana, fecha del primer TAR registrado). El denominador son los días de [inicio, corte) que caen dentro de un episodio de TAR oral.",
+    "Un episodio ocupa [fecha de inicio, fecha de inicio del siguiente episodio o corte). Cada cambio de TAR corta el episodio anterior.",
+    "Una dispensación de d días cubre d días a partir de su fecha o, si el suministro anterior del mismo componente y episodio aún no se ha agotado, a partir del día en que este termine (arrastre). El arrastre previo a la ventana cuenta; el que sobrepasa el fin del episodio no.",
+    "Una dispensación con fecha >= corte no cuenta.",
+    "Un día está cubierto si TODOS los componentes del TAR están cubiertos ese día (intersección, no suma). Catálogo: TAR_A=[A], TAR_B=[B], TAR_CD=[C,D].",
+    "Los episodios de TAR inyectable no entran en el numerador ni en el denominador; se listan como excluidos.",
+    "PDC = cubiertos / total; sin días evaluables (total = 0) el PDC es null, nunca 0.",
+    "Señales esperadas (reglas demostrativas, umbral 0,9): tar_inyectable_no_evaluable si hay excluidos; sin_datos si no hay días evaluables ni excluidos; cobertura_demo si PDC < 0,9; datos_fuera_episodio si hay dispensaciones vigentes fuera de su episodio. Se emiten en este orden."
+  ],
+  "familias_pendientes": [
+    "LA-TAR: administración a tiempo, dentro de ventana, fuera de ventana, fase de carga y reinicio. Pendiente de la especificación clínica A13; no se inventan ventanas."
+  ],
+  "casos": [
+    {
+      "id": "G01", "familia": "aritmetica_basica", "descripcion": "Sin huecos: dos dispensaciones consecutivas de 30 días",
+      "razonamiento": "Ventana 60 hasta el 2 mar: inicio = 1 ene (31 ene + 28 feb + 1 mar = 60 días). 1.ª cubre 1–30 ene; 2.ª empieza el 31 ene (fin de la anterior) y cubre 31 ene–1 mar. 60 de 60.",
+      "corte": "2026-03-02", "ventana": 60,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}, {"fecha": "2026-01-31", "ep": 0, "componente": "A", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}, {"fecha": "2026-01-31", "ep": 0, "componente": "A", "dias": 30}],
+      "esperado": {"cubiertos": 60, "total": 60, "excluidos": []}, "senales": []
+    },
+    {
+      "id": "G02", "familia": "aritmetica_basica", "descripcion": "Hueco único de 10 días",
+      "razonamiento": "Total 60 (1 ene–1 mar). 1.ª cubre 1–30 ene (30). Hueco: 31 ene + 1–9 feb = 10 días. 2.ª desde 10 feb cubre 10–28 feb (19) y 1 mar (1) = 20. Cubiertos 50.",
+      "corte": "2026-03-02", "ventana": 60,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}, {"fecha": "2026-02-10", "ep": 0, "componente": "A", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}, {"fecha": "2026-02-10", "ep": 0, "componente": "A", "dias": 30}],
+      "esperado": {"cubiertos": 50, "total": 60, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "G03", "familia": "aritmetica_basica", "descripcion": "Tres suministros de 10 días con huecos de 10 días entre ellos",
+      "razonamiento": "Total 60. Cubiertos: 1–10 ene, 21–30 ene, 10–19 feb = 30 días. Huecos: 11–20 ene, 31 ene–9 feb, 20 feb–1 mar.",
+      "corte": "2026-03-02", "ventana": 60,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 10}, {"fecha": "2026-01-21", "ep": 0, "componente": "A", "dias": 10}, {"fecha": "2026-02-10", "ep": 0, "componente": "A", "dias": 10}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 10}, {"fecha": "2026-01-21", "ep": 0, "componente": "A", "dias": 10}, {"fecha": "2026-02-10", "ep": 0, "componente": "A", "dias": 10}],
+      "esperado": {"cubiertos": 30, "total": 60, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "G04", "familia": "aritmetica_basica", "descripcion": "Recogida anticipada: el sobrante se arrastra, no se pierde ni se solapa",
+      "razonamiento": "1.ª cubre 1–30 ene. La 2.ª se recoge el 20 ene pero el suministro anterior dura hasta el 30 ene, así que empieza el 31 ene y cubre 31 ene–1 mar. Total 60, cubiertos 60. Un cálculo ingenuo (cubrir desde el 20 ene) dejaría hueco al final.",
+      "corte": "2026-03-02", "ventana": 60,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}, {"fecha": "2026-01-20", "ep": 0, "componente": "A", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}, {"fecha": "2026-01-20", "ep": 0, "componente": "A", "dias": 30}],
+      "esperado": {"cubiertos": 60, "total": 60, "excluidos": []}, "senales": []
+    },
+    {
+      "id": "G05", "familia": "aritmetica_basica", "descripcion": "Dispensación el mismo día del corte: no cuenta (final exclusivo)",
+      "razonamiento": "Corte 31 ene, ventana 30: total 30 (1–30 ene). 1.ª de 20 días cubre 1–20 ene. La del 31 ene tiene fecha >= corte y no cuenta. 20 de 30.",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 20}, {"fecha": "2026-01-31", "ep": 0, "componente": "A", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 20}],
+      "esperado": {"cubiertos": 20, "total": 30, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "G06", "familia": "aritmetica_basica", "descripcion": "Dispensación posterior al corte: no se tiene en cuenta",
+      "razonamiento": "Igual que G05 pero la 2.ª dispensación es del 15 feb, posterior al corte. 20 de 30.",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 20}, {"fecha": "2026-02-15", "ep": 0, "componente": "A", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 20}],
+      "esperado": {"cubiertos": 20, "total": 30, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "M01", "familia": "multicomponente", "descripcion": "Dos componentes alineados",
+      "razonamiento": "C y D cubren 1–30 ene. Intersección = 30 de 30.",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_CD"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "C", "dias": 30}, {"fecha": "2026-01-01", "ep": 0, "componente": "D", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "C", "dias": 30}, {"fecha": "2026-01-01", "ep": 0, "componente": "D", "dias": 30}],
+      "esperado": {"cubiertos": 30, "total": 30, "excluidos": []}, "senales": []
+    },
+    {
+      "id": "M02", "familia": "multicomponente", "descripcion": "Un componente desfasado: intersección, no suma",
+      "razonamiento": "Corte 10 feb, ventana 40: total 40 (1 ene–9 feb). C cubre 1–30 ene. D (desde 11 ene) cubre 11 ene–9 feb. Intersección 11–30 ene = 20 días. 20 de 40.",
+      "corte": "2026-02-10", "ventana": 40,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_CD"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "C", "dias": 30}, {"fecha": "2026-01-11", "ep": 0, "componente": "D", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "C", "dias": 30}, {"fecha": "2026-01-11", "ep": 0, "componente": "D", "dias": 30}],
+      "esperado": {"cubiertos": 20, "total": 40, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "M03", "familia": "multicomponente", "descripcion": "Un componente nunca dispensado: ningún día cubierto",
+      "razonamiento": "Solo C dispensado. Sin D no hay ningún día con todos los componentes. 0 de 30; el PDC es 0 (hay días evaluables), no null.",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_CD"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "C", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "C", "dias": 30}],
+      "esperado": {"cubiertos": 0, "total": 30, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "M04", "familia": "multicomponente", "descripcion": "Arrastre independiente por componente",
+      "razonamiento": "Total 60 (1 ene–1 mar). C: 1.ª 1–30 ene; la 2.ª (25 ene) se arrastra y cubre 31 ene–1 mar. D: 60 días desde el 1 ene = 1 ene–1 mar. Ambos cubren los 60 días. 60 de 60.",
+      "corte": "2026-03-02", "ventana": 60,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_CD"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "C", "dias": 30}, {"fecha": "2026-01-25", "ep": 0, "componente": "C", "dias": 30}, {"fecha": "2026-01-01", "ep": 0, "componente": "D", "dias": 60}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "C", "dias": 30}, {"fecha": "2026-01-25", "ep": 0, "componente": "C", "dias": 30}, {"fecha": "2026-01-01", "ep": 0, "componente": "D", "dias": 60}],
+      "esperado": {"cubiertos": 60, "total": 60, "excluidos": []}, "senales": []
+    },
+    {
+      "id": "T01", "familia": "cambio_tar", "descripcion": "Cambio de TAR con sobrante del régimen anterior: no se traslada al nuevo",
+      "razonamiento": "Ventana 90 hasta 2 mar; inicio = 1 ene (primer TAR). Episodio 1 [1 ene, 1 feb) = 31 días; la dispensación de 60 días lo cubre entero (31) y el resto se descarta. Episodio 2 [1 feb, 2 mar) = 29 días sin dispensaciones de B: 0. Total 60, cubiertos 31.",
+      "corte": "2026-03-02", "ventana": 90,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 60}]},
+        {"tipo": "tratamiento", "fecha": "2026-02-01", "tar": "TAR_B"}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 60}],
+      "esperado": {"cubiertos": 31, "total": 60, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "T02", "familia": "cambio_tar", "descripcion": "Cambio de TAR el mismo día de la primera dispensación del nuevo régimen",
+      "razonamiento": "Ventana 50 hasta 20 feb; inicio = 1 ene. Episodio 1 [1 ene, 21 ene) = 20 días cubiertos por A (30 días, recortados). Episodio 2 [21 ene, 20 feb) = 30 días cubiertos por B desde el 21 ene. 50 de 50.",
+      "corte": "2026-02-20", "ventana": 50,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}]},
+        {"tipo": "tratamiento", "fecha": "2026-01-21", "tar": "TAR_B"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-21", "ep": 1, "componente": "B", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}, {"fecha": "2026-01-21", "ep": 1, "componente": "B", "dias": 30}],
+      "esperado": {"cubiertos": 50, "total": 50, "excluidos": []}, "senales": []
+    },
+    {
+      "id": "V01", "familia": "ventana", "descripcion": "Suministro anterior a la ventana que sigue vigente dentro de ella",
+      "razonamiento": "Ventana 30 hasta 2 mar: inicio 31 ene (total 30). La dispensación del 1 ene (90 días) cubre hasta el 31 mar, así que cubre toda la ventana aunque se recogió antes de que empiece. 30 de 30.",
+      "corte": "2026-03-02", "ventana": 30,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 90}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 90}],
+      "esperado": {"cubiertos": 30, "total": 30, "excluidos": []}, "senales": []
+    },
+    {
+      "id": "V02", "familia": "ventana", "descripcion": "Menos seguimiento que la ventana: el denominador parte del primer TAR",
+      "razonamiento": "Ventana 180 pero el TAR empieza el 1 feb: inicio = 1 feb, total 28 (febrero). Dispensación de 10 días: 1–10 feb. 10 de 28.",
+      "corte": "2026-03-01", "ventana": 180,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-02-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-02-01", "ep": 0, "componente": "A", "dias": 10}]}
+      ],
+      "efectivas": [{"fecha": "2026-02-01", "ep": 0, "componente": "A", "dias": 10}],
+      "esperado": {"cubiertos": 10, "total": 28, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "V03", "familia": "ventana", "descripcion": "Ventana corta que recorta un suministro",
+      "razonamiento": "Corte 15 ene, ventana 7: ventana 8–14 ene (7 días). El suministro de 10 días cubre 1–10 ene, de los que 8, 9 y 10 ene están en la ventana. 3 de 7.",
+      "corte": "2026-01-15", "ventana": 7,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 10}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 10}],
+      "esperado": {"cubiertos": 3, "total": 7, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "D01", "familia": "datos_sucios", "descripcion": "Duplicado exacto en un segundo lote: no suma cobertura",
+      "razonamiento": "Total 45 (1 ene–14 feb). El segundo lote repite la misma fila; se omite como duplicado y solo queda un suministro de 30 días. 30 de 45. Si se apilaran, serían 45 de 45.",
+      "corte": "2026-02-15", "ventana": 45,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}]},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}]}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}],
+      "esperado": {"cubiertos": 30, "total": 45, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "D02", "familia": "datos_sucios", "descripcion": "Corrección retroactiva por sustitución: cuenta la fila corregida",
+      "razonamiento": "La dispensación de 30 días se sustituye por una de 20 días el mismo día. Solo la corregida es vigente: cubre 1–20 ene. 20 de 30.",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}]},
+        {"tipo": "correccion", "importacion": 0, "fila": 0, "motivo": "Corrección sintética de días", "sustitucion": {"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 20}}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 20}],
+      "esperado": {"cubiertos": 20, "total": 30, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "D03", "familia": "datos_sucios", "descripcion": "Anulación sin sustitución: la fila anulada no cuenta",
+      "razonamiento": "La única dispensación se anula. Sin suministros vigentes hay 30 días evaluables y 0 cubiertos: PDC 0 (no null).",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}]},
+        {"tipo": "correccion", "importacion": 0, "fila": 0, "motivo": "Anulación sintética", "sustitucion": null}
+      ],
+      "efectivas": [],
+      "esperado": {"cubiertos": 0, "total": 30, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "D04", "familia": "datos_sucios", "descripcion": "Dispensación que queda fuera de su episodio tras un cambio de TAR registrado después",
+      "razonamiento": "La dispensación del 10 feb (A) era válida cuando solo existía el episodio 1; después se registra un cambio de TAR el 1 feb. La fila queda fuera de su episodio y no aporta cobertura. Episodio 1 [1 ene, 1 feb) = 31 días sin cubrir; episodio 2 [1 feb, 2 mar) = 29 días sin B. 0 de 60, y se señala el dato fuera de episodio.",
+      "corte": "2026-03-02", "ventana": 90,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-02-10", "ep": 0, "componente": "A", "dias": 30}]},
+        {"tipo": "tratamiento", "fecha": "2026-02-01", "tar": "TAR_B"}
+      ],
+      "efectivas": [{"fecha": "2026-02-10", "ep": 0, "componente": "A", "dias": 30}],
+      "esperado": {"cubiertos": 0, "total": 60, "excluidos": []}, "senales": ["cobertura_demo", "datos_fuera_episodio"]
+    },
+    {
+      "id": "E01", "familia": "casos_vacios", "descripcion": "Con TAR pero sin ninguna dispensación",
+      "razonamiento": "Hay 30 días evaluables y ninguno cubierto: 0 de 30. PDC = 0 (ausencia de cobertura registrada, no incumplimiento demostrado).",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [{"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"}],
+      "efectivas": [],
+      "esperado": {"cubiertos": 0, "total": 30, "excluidos": []}, "senales": ["cobertura_demo"]
+    },
+    {
+      "id": "E02", "familia": "casos_vacios", "descripcion": "Sin TAR registrado: PDC null, no 0",
+      "razonamiento": "Sin episodios no hay días evaluables: total 0, PDC null; la señal es sin_datos.",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [],
+      "efectivas": [],
+      "esperado": {"cubiertos": 0, "total": 0, "excluidos": []}, "senales": ["sin_datos"]
+    },
+    {
+      "id": "E03", "familia": "casos_vacios", "descripcion": "TAR que empieza el mismo día del corte: sin días evaluables",
+      "razonamiento": "El episodio ocupa [31 ene, 31 ene) = 0 días. PDC null, señal sin_datos.",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [{"tipo": "tratamiento", "fecha": "2026-01-31", "tar": "TAR_A"}],
+      "efectivas": [],
+      "esperado": {"cubiertos": 0, "total": 0, "excluidos": []}, "senales": ["sin_datos"]
+    },
+    {
+      "id": "E04", "familia": "casos_vacios", "descripcion": "TAR inyectable únicamente: PDC oral null y periodo excluido",
+      "razonamiento": "El episodio es intramuscular: no entra en el PDC oral. Total 0, PDC null. Excluido [1 ene, 31 ene) = 30 días. Señal tar_inyectable_no_evaluable (y no sin_datos).",
+      "corte": "2026-01-31", "ventana": 30,
+      "pasos": [{"tipo": "tratamiento_inyectable", "fecha": "2026-01-01"}],
+      "efectivas": [],
+      "esperado": {"cubiertos": 0, "total": 0, "excluidos": [30]}, "senales": ["tar_inyectable_no_evaluable"]
+    },
+    {
+      "id": "E05", "familia": "casos_vacios", "descripcion": "Oral seguido de inyectable: solo el tramo oral cuenta",
+      "razonamiento": "Ventana 90 hasta 2 mar; inicio 1 ene. Episodio oral [1 ene, 1 feb) = 31 días, dispensación de 30: cubiertos 30 de 31 (0,968, por encima del umbral). Episodio inyectable [1 feb, 2 mar) = 29 días excluidos.",
+      "corte": "2026-03-02", "ventana": 90,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2026-01-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}]},
+        {"tipo": "tratamiento_inyectable", "fecha": "2026-02-01"}
+      ],
+      "efectivas": [{"fecha": "2026-01-01", "ep": 0, "componente": "A", "dias": 30}],
+      "esperado": {"cubiertos": 30, "total": 31, "excluidos": [29]}, "senales": ["tar_inyectable_no_evaluable"]
+    },
+    {
+      "id": "K01", "familia": "calendario", "descripcion": "Año bisiesto: febrero de 2028 tiene 29 días",
+      "razonamiento": "Ventana 29 hasta el 1 mar de 2028: inicio 1 feb, total 29 (1–29 feb, incluido el 29). Suministro de 28 días: 1–28 feb. 28 de 29. Sin bisiesto saldría 28 de 28.",
+      "corte": "2028-03-01", "ventana": 29,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2028-02-01", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2028-02-01", "ep": 0, "componente": "A", "dias": 28}]}
+      ],
+      "efectivas": [{"fecha": "2028-02-01", "ep": 0, "componente": "A", "dias": 28}],
+      "esperado": {"cubiertos": 28, "total": 29, "excluidos": []}, "senales": []
+    },
+    {
+      "id": "K02", "familia": "calendario", "descripcion": "Cruce de año",
+      "razonamiento": "Ventana 30 hasta el 14 ene de 2026: inicio 15 dic de 2025, total 30. Suministro de 20 días: 15 dic–3 ene. 20 de 30.",
+      "corte": "2026-01-14", "ventana": 30,
+      "pasos": [
+        {"tipo": "tratamiento", "fecha": "2025-12-15", "tar": "TAR_A"},
+        {"tipo": "importacion", "filas": [{"fecha": "2025-12-15", "ep": 0, "componente": "A", "dias": 20}]}
+      ],
+      "efectivas": [{"fecha": "2025-12-15", "ep": 0, "componente": "A", "dias": 20}],
+      "esperado": {"cubiertos": 20, "total": 30, "excluidos": []}, "senales": ["cobertura_demo"]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "resourceType": "Observation",
+  "id": "ejemplo-adherencia-declarada",
+  "status": "final",
+  "code": {
+    "coding": [{ "system": "urn:vihconectados:demo:codigos", "code": "evaluacion-adherencia-declarada", "display": "Valoración manual de adherencia (declarativa)" }]
+  },
+  "subject": { "reference": "Patient/ejemplo-paciente" },
+  "effectivePeriod": { "start": "2025-01-01", "end": "2025-02-01" },
+  "issued": "2025-02-01T00:00:00Z",
+  "valueString": "Sin dificultades referidas",
+  "note": [{ "text": "Ejemplo SINTÉTICO de demostración; no corresponde a ninguna persona real." }]
+}

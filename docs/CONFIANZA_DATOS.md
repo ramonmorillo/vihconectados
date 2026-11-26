@@ -41,7 +41,7 @@ La condición calculada no se modifica por revisarla. Su gestión es un evento i
 
 La huella canónica incluye reglas, intervalo, episodios, suministros y correcciones efectivos, y la visita que fundamenta una señal de experiencia. No incluye reloj, renderizado, exportaciones ni anotaciones ajenas a esa evidencia. Cambiar el intervalo, reglas o datos efectivos requiere revisión nueva si la condición sigue presente. Añadir una dispensación futura no reabre una señal histórica. Si la condición deja de existir no se presenta como pendiente, pero se conserva su gestión en la historia.
 
-Avisos metodológicos (sin intervalo oral evaluable o TAR intramuscular fuera del PDC), calidad de datos y señales asistenciales se etiquetan por separado. Contadores y mesa incluyen solo pendientes asistenciales/de calidad; la cohorte permite filtrar avisos y señales gestionadas. Las revisiones globales antiguas se conservan sin inventar un vínculo individual que nunca tuvieron.
+Avisos metodológicos (sin intervalo oral evaluable), calidad de datos, señales asistenciales y episodios de **TAR intramuscular no monitorizado** se etiquetan por separado. Contadores y mesa incluyen los pendientes asistenciales, de calidad y de «no monitorizado»; la cohorte permite filtrar avisos y señales gestionadas. Un episodio intramuscular sigue excluido del PDC oral, pero ya no es silencioso: genera una señal pendiente (categoría `no_monitorizado`) hasta que un profesional la gestiona, y la condición se sigue calculando y mostrando aunque se gestione (actuación A06). Las revisiones globales antiguas se conservan sin inventar un vínculo individual que nunca tuvieron.
 
 ## Validación y recorrido
 
