@@ -56,7 +56,7 @@ test('Una capacidad implementada o parcial tiene módulo y prueba; una pendiente
 
 test('La matriz distingue lo ESPECIFICADO de lo IMPLEMENTADO: ningún módulo de especificación figura como implementado sin su motor', () => {
   const especificados = filas.filter((f) => estadoBase(f) === 'ESPECIFICADO');
-  assert.deepEqual(especificados.map((f) => f.id).sort(), ['CAP-08', 'CAP-11']);
+  assert.deepEqual(especificados.map((f) => f.id).sort(), ['CAP-08', 'CAP-11', 'CAP-20']);
   for (const f of filas.filter((x) => estadoBase(x) === 'IMPLEMENTADO'))
     for (const m of f.modulos) assert.ok(!/esquema-(evidencia|cuestionario)\.js$/.test(m), `${f.id} presenta como implementado un módulo solo especificado`);
 });

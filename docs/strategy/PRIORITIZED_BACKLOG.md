@@ -102,6 +102,7 @@ Las actuaciones A02–A21 no necesitan que se haya decidido la ruta regulatoria,
 - **Aceptación:** (1) decisión explícita sobre licencia del propio repositorio; (2) `ATTRIBUTIONS.md` con cada fuente (preparadorconsulta `42402cb`, cmo-vih-app `c963da9`, guion SEFH, AEMPS/CIMA, Hub), su permiso y su estado; (3) `legal.js` coherente, sin afirmar cesiones no formalizadas.
 
 ### A12 · Mapeo evento → FHIR y validación local con herramienta abierta
+> **Estado 2026-11-26: BORRADOR; criterio 2 PENDIENTE.** Cumplidos: (1) tabla evento→recurso con huecos explícitos y (4) sin dependencias; (3) perfiles y terminologías marcados `[REQUIERE REFERENCIA]`. **No cumplido (2):** hay 4 ejemplos sintéticos con comprobación estructural local, pero **el validador oficial de HL7 no se ha ejecutado** (la ejecución fue bloqueada por el control de permisos de la sesión y no se eludió). Ver `FHIR_MAPPING.md` §6.
 - **Impacto:** Medio (habilitante). · **Esfuerzo:** M. · **Prioridad:** P2 · **Tipo:** doc + ejemplos
 - **Dependencias:** conocer interfaces del centro `[DATO PENDIENTE]`. · **Riesgo:** bajo [F-28].
 - **Aceptación:** (1) tabla evento→recurso con campos obligatorios y huecos explícitos; (2) tres ejemplos sintéticos que validan sin errores con el validador oficial de HL7 FHIR; (3) perfiles nacionales/terminologías marcados `[REQUIERE REFERENCIA]` si no se han podido verificar; (4) ninguna dependencia nueva de ejecución.

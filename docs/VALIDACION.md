@@ -143,3 +143,9 @@ El envío por Git de `feat/fase-1` se completó correctamente. La rama está dis
 - **Qué NO está comprobado:** que el flujo se ejecute y pase en GitHub. Esta sesión no tiene acceso a la API de Actions. Hasta ver una ejecución verde, la afirmación correcta es «el flujo existe», no «la CI pasa».
 - **Fuera de alcance:** los recorridos de navegador (`npm run test:browser`) requieren Playwright y Chromium y no se ejecutan en CI.
 - **Pendiente `[VERIFICAR]`:** fijar las acciones por *hash* en lugar de por etiqueta (`@v4`); depende de D-G10 (visibilidad del repositorio y plan de Actions).
+
+## A12 · Mapeo evento → FHIR (2026-11-26)
+
+- **Qué existe:** `docs/strategy/FHIR_MAPPING.md` (tabla de 16 eventos, huecos, principios) y 4 ejemplos sintéticos en `pruebas/fhir/`. `pruebas/fhir.test.mjs` (5 pruebas) comprueba cardinalidad mínima de R4, estados, fechas, referencias, ausencia de datos identificativos y ausencia de terminologías inventadas.
+- **Qué NO está comprobado:** la validación con el validador oficial de HL7 **no se ha ejecutado**. La comprobación local **no** es conformidad con ningún perfil ni guía.
+- **Condición para cerrar A12:** ejecutar el validador en un entorno controlado, con versión y suma de control registradas, y anotar el resultado.

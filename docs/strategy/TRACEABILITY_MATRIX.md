@@ -36,7 +36,7 @@
 | CAP-17 | Enfermería como actor y matriz de permisos | PENDIENTE | — | — | R21 | A17, B11 |
 | CAP-18 | Autenticación, roles y aislamiento multicéntrico | PENDIENTE (contrato y diseño) | `src/acceso.js` | `pruebas/publico.test.mjs`, `pruebas/publico.mjs` | R17 | B02, B03 |
 | CAP-19 | Persistencia y puerto de repositorio por comandos | PARCIAL (en el navegador; sin servidor) | `src/comandos.js`, `src/repositorio.js`, `src/almacen.js` | `pruebas/comandos.test.mjs`, `pruebas/motor.test.mjs`, `pruebas/navegador.mjs` | R13, R15, R16 | A07, B01, B05 |
-| CAP-20 | Interoperabilidad HL7 FHIR | PENDIENTE | — | — | R25 | A12, B15 |
+| CAP-20 | Interoperabilidad HL7 FHIR | ESPECIFICADO (mapeo documental y 4 ejemplos; sin código; validación oficial NO ejecutada) | `docs/strategy/FHIR_MAPPING.md` | `pruebas/fhir.test.mjs` | R25 | A12, B15 |
 | CAP-21 | Informes profesional y de paciente (instantánea congelada) | IMPLEMENTADO | `src/informes.js`, `src/vista-informes.js` | `pruebas/cima-informes.test.mjs`, `pruebas/motor.test.mjs`, `pruebas/navegador.mjs` | R19 | A09 |
 | CAP-22 | Catálogo CIMA y selección del TAR | PARCIAL (acceso en vivo no verificado) | `src/cima.js`, `src/medicacion.js`, `src/seleccion-tar.js` | `pruebas/cima-informes.test.mjs`, `pruebas/conciliacion.test.mjs`, `pruebas/registro-manual.mjs` | R25, R26 | A07 |
 | CAP-23 | Ausencia de IA generativa en la ruta clínica | AUSENTE por diseño (sin prueba automática que lo garantice) | `src/legal.js` | `pruebas/arquitectura.test.mjs` | R10 | A21 |
@@ -55,8 +55,8 @@
 
 ## 2. Cómo leer los vacíos
 
-- **PENDIENTE sin módulo ni prueba** (CAP-15, CAP-17, CAP-20, CAP-24): son las brechas reales. No hay nada que verificar porque no existe.
-- **ESPECIFICADO** (CAP-08, CAP-11): hay un esquema ejecutable y datos de ejemplo, pero **ningún motor**; las pruebas comprueban coherencia interna, no un comportamiento del sistema.
+- **PENDIENTE sin módulo ni prueba** (CAP-15, CAP-17): son las brechas reales. No hay nada que verificar porque no existe.
+- **ESPECIFICADO** (CAP-08, CAP-11, CAP-20): hay un esquema o un mapeo con ejemplos, pero **ningún motor**; las pruebas comprueban coherencia interna, no un comportamiento del sistema. En CAP-20 ni siquiera se ha ejecutado el validador oficial de FHIR.
 - **CAP-23** es la única afirmación **negativa** («no hay IA»): se sostiene por inspección del código y por la regla de capas, pero **no hay una prueba específica** que falle si alguien añade una llamada a un modelo. La prevé A21.
 - **«Pruebas»** incluye los guiones de navegador (`.mjs` sin `.test`), que no se ejecutan con `npm test` sino con `npm run test:browser`.
 

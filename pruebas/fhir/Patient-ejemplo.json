@@ -1,0 +1,5 @@
+{
+  "resourceType": "Patient",
+  "id": "ejemplo-paciente",
+  "identifier": [{ "system": "urn:vihconectados:demo:seudonimo", "value": "SINTETICO-0001" }]
+}
