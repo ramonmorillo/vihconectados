@@ -171,3 +171,10 @@ El envío por Git de `feat/fase-1` se completó correctamente. La rama está dis
 - **Hallazgos objetivos:** 6 grupos inyectados antes de corregir (`paciente.id`, `visita.fecha`, `estado_comunicacion.estado`, `revision_alertas.registrado`, `tratamiento.id`, `nivel.nivel`). Corregidos con `esc()` en `src/app.js`; por precaución también la fecha de corte y las cifras almacenadas en `src/medicacion.js`, `src/registro-manual.js`, `src/vista-consulta.js` y `src/revision-datos.js`. Tras la corrección: 0 inyectados, 80 escapados, 5 bloqueados por validación, **215 no mostrados**.
 - **Límite principal:** la cobertura es del 28 %. «No alcanzado» no es «seguro». Los informes congelados y sus ventanas concentran 163 de los 215 grupos sin ver.
 - **Contraste:** la prueba detectó los 6 fallos reales antes de la corrección (es la mejor prueba de que mide algo); no se hizo contraste por mutación adicional.
+
+## Versión 0.4.0 (2026-11-26)
+
+- **Qué cambia:** `VERSION` 0.3.0 → **0.4.0** (`src/motor.js`, `src/legal.js`, `package.json`, `package-lock.json`, `README.md`, `index.html`) y fecha de la ficha legal (26 de noviembre de 2026). Se incluyen todas las actuaciones A02 a A15 descritas arriba, el formato de datos `demo@2` y la edición del manual de uso del 26/11/2026.
+- **Qué no cambia:** el contenido clínico. Ninguna regla está validada; los informes nuevos registran `version: "0.4.0"` y los guardados con 0.3.0 conservan su versión.
+- **Criterio de numeración:** incremento menor por funciones nuevas y cambio de formato de datos con migración. La numeración la fija el autor; este cambio puede revertirse sin afectar a los datos.
+- **Documentos históricos:** la auditoría (`docs/strategy/CURRENT_STATE_AUDIT.md`) describe la base auditada, v0.3.0, y no se reescribe.

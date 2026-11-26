@@ -5,7 +5,7 @@
 
 Autor de la herramienta: **Dr. Ramón Morillo Verdugo**.
 
-Edición del manual: **26 de noviembre de 2026**. Aplicación v0.3.0 (cohorte 2026-11-v2, formato de datos `demo@2`), con consulta guiada, seguimiento, registro de reglas y exportación con manifiesto.
+Edición del manual: **26 de noviembre de 2026**. Aplicación v0.4.0 (cohorte 2026-11-v2, formato de datos `demo@2`), con consulta guiada, seguimiento, registro de reglas y exportación con manifiesto.
 
 **Solo casos sintéticos.** La versión descrita es una demostración local. No es un sistema de prescripción ni un producto clínicamente validado. No introduzca datos reales ni credenciales.
 
