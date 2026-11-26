@@ -6,6 +6,7 @@ import { evaluarSenales, pendientesSenales } from "./senales.js";
 import { abrirDispensacionManual, abrirEvaluacionManual, vistaEvaluacionesManuales } from "./registro-manual.js";
 import { navegacionDesktop, vistaPoblacional, vistaCohorte, conectarCohorte, resumenLongitudinal, itinerarioCMO } from "./desktop.js";
 import {
+  VERSION,
   REGLAS,
   componentes,
   nombreTar,
@@ -25,6 +26,7 @@ import { paginaLegal, enlacesLegales, AUTORIA } from "./legal.js";
 import { AccesoDemostracion } from "./acceso.js";
 import { informe, informePaciente, textoInforme } from "./informes.js";
 import { vistaInforme } from "./vista-informes.js";
+import { empaquetar, informeMinimo } from "./exportacion.js";
 import { abrirSeleccionTar } from "./medicacion.js";
 import { ADHEFAR } from "./recursos.js";
 import { enlaceCima } from "./cima.js";
@@ -218,7 +220,7 @@ function listadoInformes(ps) {
                 ? "Hoja para el paciente"
                 : estadoComunicacion(p, i.id, fin),
               next = paciente ? null : estado === estadoComunicacion(p,i.id) ? ESTADOS[ESTADOS.indexOf(estado) + 1] : null;
-            return `<article class="card"><div class="section-head"><h2>${esc(p.id)} · ${i.fecha}</h2>${badge(estado)}</div><p class="muted">${paciente ? "Instrucciones revisadas · Hoja fija de demostración" : "Informe profesional fijo · circuito de comunicación simulado"}</p><div class="actions">${boton("ver-informe", "Ver e imprimir", p.id + "|" + i.id)}${!paciente ? boton("copiar-informe", "Copiar para historia clínica", p.id + "|" + i.id) : ""}${boton("json-informe", "Descargar JSON", p.id + "|" + i.id)}${next ? boton("estado", "Simular: " + next, p.id + "|" + i.id) : ""}</div>${
+            return `<article class="card"><div class="section-head"><h2>${esc(p.id)} · ${i.fecha}</h2>${badge(estado)}</div><p class="muted">${paciente ? "Instrucciones revisadas · Hoja fija de demostración" : "Informe profesional fijo · circuito de comunicación simulado"}</p><div class="actions">${boton("ver-informe", "Ver e imprimir", p.id + "|" + i.id)}${!paciente ? boton("copiar-informe", "Copiar para historia clínica", p.id + "|" + i.id) : ""}${boton("json-informe", "JSON completo", p.id + "|" + i.id)}${boton("json-informe-minimo", "JSON mínimo", p.id + "|" + i.id)}${next ? boton("estado", "Simular: " + next, p.id + "|" + i.id) : ""}</div>${
               !paciente
                 ? `<details><summary>Trazabilidad de comunicación</summary><p class="muted">${esc(i.registrado)} · pendiente</p>${p.eventos
                     .filter(
@@ -610,7 +612,7 @@ document.addEventListener("click", async (ev) => {
       flash("Informe fijado. Comunicación pendiente; no se ha enviado.");
     }
     if (
-      ["estado", "json-informe", "ver-informe", "copiar-informe"].includes(a)
+      ["estado", "json-informe", "json-informe-minimo", "ver-informe", "copiar-informe"].includes(a)
     ) {
       const [pid, iid] = id.split("|"),
         pp = db.pacientes.find((p) => p.id === pid),
@@ -628,7 +630,19 @@ document.addEventListener("click", async (ev) => {
           },
         });
       }
-      if (a === "json-informe") descargar(i, `${pid}-informe.json`);
+      if (a === "json-informe" || a === "json-informe-minimo") {
+        const minimo = a === "json-informe-minimo";
+        descargar(
+          await empaquetar({
+            tipo: i.tipo,
+            contenido: minimo ? informeMinimo(i) : i,
+            exportado: new Date().toISOString().slice(0, 10),
+            version: VERSION,
+            modo: minimo ? "minimo" : "completo",
+          }),
+          `${pid}-informe${minimo ? "-minimo" : ""}.json`,
+        );
+      }
       if (a === "ver-informe") mostrarInforme(i);
       if (a === "copiar-informe") {
         mostrarInforme(i);
@@ -636,7 +650,10 @@ document.addEventListener("click", async (ev) => {
       }
     }
     if (a === "exportar")
-      descargar({ ...db, reglas }, "vihconectados-demo.json");
+      descargar(
+        await empaquetar({ tipo: "base", contenido: { ...db, reglas }, exportado: new Date().toISOString().slice(0, 10), version: VERSION, modo: "completo" }),
+        "vihconectados-demo.json",
+      );
     if (a === "reglas")
       modal(
         "Parámetros demostrativos",

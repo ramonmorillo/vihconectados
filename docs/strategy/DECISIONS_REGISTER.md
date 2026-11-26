@@ -15,11 +15,11 @@
 
 | Bloque | Decisiones | Documento de origen |
 |---|---|---|
-| Gobernanza, regulatorio y aprobación de lo construido (`D-G`) | 15 | Este registro; `CLINICAL_GOVERNANCE.md`, `REGULATORY_READINESS.md`, `PRODUCT_ROADMAP.md` |
+| Gobernanza, regulatorio y aprobación de lo construido (`D-G`) | 16 | Este registro; `CLINICAL_GOVERNANCE.md`, `REGULATORY_READINESS.md`, `PRODUCT_ROADMAP.md` |
 | TAR de acción prolongada (`D-01` a `D-12`) | 12 | `LA_TAR_CLINICAL_SPEC.md` §9 |
 | Evidencia y triangulación (`D-E01` a `D-E13`) | 13 | `EVIDENCE_TRIANGULATION_SPEC.md` §9 |
 | Cuestionarios y escalado (`D-Q01` a `D-Q11`) | 11 | `QUESTIONNAIRE_SPEC.md` §11 |
-| **Total** | **51** | |
+| **Total** | **52** | |
 
 ## 2. Orden recomendado (olas)
 
@@ -54,6 +54,7 @@ Cada ola desbloquea la siguiente. **Una ola posterior puede empezar a discutirse
 | D-G13 | Revisar el contenido de las fichas del registro de reglas (descripción, fuente, población, exclusiones, riesgos) | Comité | Abierta | 1 | Cierre de A03 |
 | D-G14 | Justificar o sustituir la ventana de 180 días y el umbral de 0,9 del PDC (heredados, sin referencia clínica) | Comité | Abierta | 1 | Validación del PDC (R03); `VALIDATION_MASTER_PLAN.md` |
 | D-G15 | Instrumentos PROM/PREM y sus licencias | Comité | Abierta | 2 | A19; cuestionarios validados |
+| D-G16 | Exportación de informes: ¿qué modo es el predeterminado (completo, que permite reproducir el cálculo, o mínimo, que minimiza datos) y qué finalidad justifica cada uno? Hoy la aplicación ofrece ambos sin predeterminado | Comité y DPD | Abierta | 1 | Cierre de A09; R19; EIPD (C03) |
 
 ---
 

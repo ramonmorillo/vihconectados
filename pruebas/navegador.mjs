@@ -116,11 +116,23 @@ await page
   .getByRole("button", { name: "Generar informe simulado", exact: true })
   .click();
 const jsonPromise = page.waitForEvent("download");
-await page.getByRole("button", { name: "Descargar JSON", exact: true }).click();
+await page.getByRole("button", { name: "JSON completo", exact: true }).click();
 const jsonDownload = await jsonPromise;
-const report = JSON.parse(await readFile(await jsonDownload.path(), "utf8"));
+const paquete = JSON.parse(await readFile(await jsonDownload.path(), "utf8"));
+assert.equal(paquete.esquema, "vihconectados/exportacion@1");
+assert.equal(paquete.modo, "completo");
+assert.match(paquete.contenido_hash, /^sha256:[0-9a-f]{64}$/);
+const report = paquete.contenido;
 assert.equal(report.formato, "vihconectados/informe@1");
 assert.equal(report.paciente, "DEMO-004");
+assert.ok(report.eventos.length > 0);
+const minPromise = page.waitForEvent("download");
+await page.getByRole("button", { name: "JSON mínimo", exact: true }).click();
+const minimo = JSON.parse(await readFile(await (await minPromise).path(), "utf8"));
+assert.equal(minimo.modo, "minimo");
+assert.equal(minimo.contenido.eventos, undefined);
+assert.equal(minimo.contenido.eventos_omitidos, report.eventos.length);
+assert.notEqual(minimo.contenido_hash, paquete.contenido_hash);
 await page.getByRole("button", { name: "Ver e imprimir", exact: true }).click();
 await page.evaluate(() => {
   window.print = () => {

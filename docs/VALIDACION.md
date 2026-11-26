@@ -149,3 +149,11 @@ El envío por Git de `feat/fase-1` se completó correctamente. La rama está dis
 - **Qué existe:** `docs/strategy/FHIR_MAPPING.md` (tabla de 16 eventos, huecos, principios) y 4 ejemplos sintéticos en `pruebas/fhir/`. `pruebas/fhir.test.mjs` (5 pruebas) comprueba cardinalidad mínima de R4, estados, fechas, referencias, ausencia de datos identificativos y ausencia de terminologías inventadas.
 - **Qué NO está comprobado:** la validación con el validador oficial de HL7 **no se ha ejecutado**. La comprobación local **no** es conformidad con ningún perfil ni guía.
 - **Condición para cerrar A12:** ejecutar el validador en un entorno controlado, con versión y suma de control registradas, y anotar el resultado.
+
+## A09 · Manifiesto y minimización de exportaciones (2026-11-26)
+
+- **Qué existe:** `src/exportacion.js` (dominio puro; usa Web Crypto, sin dependencias). Toda descarga JSON (informe profesional, hoja de paciente, base) sale en un paquete `vihconectados/exportacion@1` con `version`, `exportado`, `modo`, `aviso` y `contenido_hash` (SHA-256 de la serialización canónica del contenido). El informe se descarga en modo **completo** (con todos los eventos) o **mínimo** (sin ellos, con `eventos_omitidos`).
+- **Pruebas:** 14 unitarias (`pruebas/exportacion.test.mjs`): vectores estándar de SHA-256, serialización canónica, detección de alteración, rechazo de paquetes malformados sin lanzar, el modo mínimo pierde exactamente `eventos` y no muta el original. Mutación sobre copia: 6 mutantes; uno (regex del hash) sobrevivía y se cubrió con una prueba. El guion `navegador.mjs` descarga ambos modos y comprueba el manifiesto; los 8 guiones de navegador pasan.
+- **Qué NO garantiza:** el hash **no es una firma**: detecta corrupción o edición accidental, no acredita autor ni origen (cualquiera puede recalcularlo). El modo mínimo conserva las señales y las referencias que contengan. Los informes ya guardados en la base siguen embebiendo todos los eventos. La exportación de la base completa no tiene modo mínimo.
+- **Decisión abierta:** D-G16 (modo predeterminado y finalidad de cada modo). Hoy la interfaz ofrece ambos botones sin predeterminado.
+- **No hay verificador en la interfaz:** `verificar()` existe y está probada, pero ninguna pantalla permite cargar un fichero para comprobarlo (pendiente si el comité lo pide).
