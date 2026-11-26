@@ -32,6 +32,7 @@ Las actuaciones A02–A21 no necesitan que se haya decidido la ruta regulatoria,
 ## 1. Clase A — Inmediatas (sin infraestructura, sin coste, seguras)
 
 ### A01 · Finalidad prevista y decisión de escenario (E1/E2/E3)
+> **Estado 2026-11-26: PAQUETE DE DECISIÓN PREPARADO; la decisión sigue ABIERTA (D-G05).** `INTENDED_PURPOSE_DECISION.md` recoge las tres opciones, la recomendación razonada del auditor (E2, con E3 como ampliación posterior), los borradores de declaración, la auditoría de los textos actuales y las preguntas mínimas. Los textos del repositorio **no se han cambiado**: se alinearán después de decidir. Sin firma del responsable clínico el criterio 1 no se cumple.
 - **Impacto:** Habilitante (condiciona toda la estrategia regulatoria y de validación). · **Esfuerzo:** S–M (doc + sesión con el CCR). · **Prioridad:** **P0** · **Tipo:** doc
 - **Dependencias:** respuestas del usuario (`CURRENT_STATE_AUDIT.md` §6, punto 1). · **Riesgo:** bajo [mitiga R27, R28, R32].
 - **Criterios de aceptación:**
