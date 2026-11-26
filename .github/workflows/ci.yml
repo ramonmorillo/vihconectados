@@ -1,0 +1,25 @@
+# Integración continua mínima (actuación A05). Sin coste añadido ni dependencias: solo ejecuta las pruebas unitarias
+# y la comprobación de sintaxis con Node.js, que no necesitan instalar paquetes.
+# Los recorridos de navegador (npm run test:browser) NO se ejecutan aquí: exigen Playwright y Chromium.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Pruebas unitarias
+        run: npm test
+      - name: Comprobación de sintaxis
+        run: npm run check

@@ -48,7 +48,7 @@ Cada ola desbloquea la siguiente. **Una ola posterior puede empezar a discutirse
 | D-G07 | Rejilla CMO vigente y su estado de validación en VIH | Equipo MAPEX | Abierta | 2 | A16, B16 |
 | D-G08 | Repositorio, licencia y titularidad de HIV Prescribing Cascade Auditor, CambiosTAR y RXplain | Autor | Abierta | 1 | Marco de reutilización (`TARGET_ARCHITECTURE_V2.md` §8) |
 | D-G09 | Licencia y titularidad de este repositorio; permisos de redistribución de las fuentes | Autor y asesoría | Abierta | 1 | A11; cualquier cesión |
-| D-G10 | ¿El repositorio es público o privado? | Autor | Abierta | 1 | A05 (integración continua gratuita) |
+| D-G10 | ¿El repositorio es público o privado? (determina si Actions es gratuito) | Autor | Abierta | 1 | A05 (integración continua gratuita) |
 | D-G11 | Segundo revisor independiente que calcule y firme el corpus dorado del PDC | Comité | Abierta | 1 | Cierre de A04 |
 | D-G12 | Confirmar o cambiar la señal «NO MONITORIZADO» para inyectables (decisión provisional del auditor) | Comité | Abierta | 1 | Cierre de A06; R01 |
 | D-G13 | Revisar el contenido de las fichas del registro de reglas (descripción, fuente, población, exclusiones, riesgos) | Comité | Abierta | 1 | Cierre de A03 |

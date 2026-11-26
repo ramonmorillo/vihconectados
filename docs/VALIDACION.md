@@ -136,3 +136,10 @@ Accesibilidad formal, navegadores distintos de Chromium, pruebas de carga, audit
 La lectura Git de `vihconectados` funciona pero no devuelve ramas: no hay base `main` para una PR. La consulta real a `https://api.github.com/repos/ramonmorillo/vihconectados` mediante `gh api` devuelve Forbidden; no se ha solicitado ni copiado un token. El resultado del envío de la rama se informa por separado en la entrega.
 
 El envío por Git de `feat/fase-1` se completó correctamente. La rama está disponible en el repositorio destino. No se creó una PR: falta una rama base y la API está bloqueada. No se creó ni modificó `main`; no se publicó configuración del entorno.
+
+## A05 · Integración continua mínima (2026-11-26)
+
+- **Qué existe:** `.github/workflows/ci.yml` ejecuta `npm test` y `npm run check` con Node 22, permisos `contents: read`, sin secretos y sin instalar dependencias. `pruebas/ci.test.mjs` (4 pruebas) protege esas propiedades.
+- **Qué NO está comprobado:** que el flujo se ejecute y pase en GitHub. Esta sesión no tiene acceso a la API de Actions. Hasta ver una ejecución verde, la afirmación correcta es «el flujo existe», no «la CI pasa».
+- **Fuera de alcance:** los recorridos de navegador (`npm run test:browser`) requieren Playwright y Chromium y no se ejecutan en CI.
+- **Pendiente `[VERIFICAR]`:** fijar las acciones por *hash* en lugar de por etiqueta (`@v4`); depende de D-G10 (visibilidad del repositorio y plan de Actions).

@@ -49,6 +49,7 @@
 | CAP-30 | Recursos externos (MAPEX-ADHEFAR Hub) | IMPLEMENTADO (solo enlace y atribución) | `src/recursos.js` | `pruebas/publico.test.mjs` | R29 | A11 |
 | CAP-31 | Gobernanza de decisiones abiertas | IMPLEMENTADO (registro; ninguna decisión resuelta) | `docs/strategy/DECISIONS_REGISTER.md` | `pruebas/decisiones.test.mjs` | R27, R30 | A01 |
 | CAP-32 | Trazabilidad entre capacidades, código y pruebas | IMPLEMENTADO | `docs/strategy/TRACEABILITY_MATRIX.md` | `pruebas/trazabilidad.test.mjs` | R33 | A02 |
+| CAP-33 | Integración continua y ausencia de dependencias de ejecución | IMPLEMENTADO (el flujo existe; su ejecución en GitHub no se ha podido comprobar desde esta sesión) | `.github/workflows/ci.yml` | `pruebas/ci.test.mjs` | R33 | A05 |
 
 ---
 

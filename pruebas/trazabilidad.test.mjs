@@ -21,9 +21,9 @@ const backlog = new Set([...leer('docs/strategy/PRIORITIZED_BACKLOG.md').matchAl
 const listar = (dir, f) => readdirSync(new URL(dir, RAIZ)).filter(f);
 const todasRutas = filas.flatMap((f) => [...f.modulos, ...f.pruebas]);
 
-test('La matriz tiene 32 capacidades con identificadores únicos y estados del vocabulario', () => {
-  assert.equal(filas.length, 32);
-  assert.equal(new Set(filas.map((f) => f.id)).size, 32);
+test('La matriz tiene 33 capacidades con identificadores únicos y estados del vocabulario', () => {
+  assert.equal(filas.length, 33);
+  assert.equal(new Set(filas.map((f) => f.id)).size, 33);
   for (const f of filas) assert.ok(ESTADOS.includes(estadoBase(f)), `${f.id}: estado ${f.estado}`);
 });
 
@@ -45,7 +45,7 @@ test('Una capacidad implementada o parcial tiene módulo y prueba; una pendiente
   for (const f of filas) {
     const e = estadoBase(f);
     if (['IMPLEMENTADO', 'PARCIAL'].includes(e)) {
-      assert.ok(f.modulos.some((r) => r.startsWith('src/') || r.startsWith('docs/') || r.startsWith('datos/')), `${f.id}: sin módulo`);
+      assert.ok(f.modulos.some((r) => r.startsWith('src/') || r.startsWith('docs/') || r.startsWith('datos/') || r.startsWith('.github/')), `${f.id}: sin módulo`);
       assert.ok(f.pruebas.length > 0, `${f.id}: ${e} sin ninguna prueba`);
     }
     if (e === 'PENDIENTE' && f.id !== 'CAP-18' && f.id !== 'CAP-24') assert.deepEqual([f.modulos, f.pruebas], [[], []], `${f.id}: pendiente pero cita evidencia`);
