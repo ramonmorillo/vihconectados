@@ -73,7 +73,7 @@ class Pages(canvas.Canvas):
             self.setFillColor(teal);self.rect(0,A4[1]-9,A4[0],9,fill=1,stroke=0)
             self.setFont('ManualBold',8);self.setFillColor(navy);self.drawString(48,A4[1]-30,'vihconectados  /  Manual de uso')
             self.setStrokeColor(colors.HexColor('#e2e8f0'));self.line(48,43,A4[0]-48,43)
-            self.setFont('Manual',7);self.setFillColor(muted);self.drawString(48,30,'Edición 09/11/2026 · Demostración con datos sintéticos')
+            self.setFont('Manual',7);self.setFillColor(muted);self.drawString(48,30,'Edición 26/11/2026 · Demostración con datos sintéticos')
             self.drawRightString(A4[0]-48,30,f'{self._pageNumber} / {total}')
             super().showPage()
         super().save()

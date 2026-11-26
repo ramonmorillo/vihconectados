@@ -1,6 +1,6 @@
 # Acceso individual por hospital — diseño de evolución
 
-Versión 0.3.0. Esta es una propuesta de arquitectura, no un servicio habilitado ni una garantía de aislamiento actual.
+Versión 0.4.0. Esta es una propuesta de arquitectura, no un servicio habilitado ni una garantía de aislamiento actual.
 
 ## Estado actual
 

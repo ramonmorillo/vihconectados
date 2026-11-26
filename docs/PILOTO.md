@@ -1,6 +1,6 @@
 # Limitaciones y requisitos para un futuro piloto clínico
 
-Estado 0.3.0, 08/11/2026. Material de demostración con datos sintéticos. Autor: Dr. Ramón Morillo Verdugo.
+Estado 0.4.0, 26/11/2026. Material de demostración con datos sintéticos. Autor: Dr. Ramón Morillo Verdugo.
 
 ## Límites actuales
 

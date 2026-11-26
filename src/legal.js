@@ -1,8 +1,8 @@
 import { esc } from "./vista-informes.js";
 export const AUTORIA = Object.freeze({
   autor: "Dr. Ramón Morillo Verdugo",
-  version: "0.3.0",
-  fecha: "8 de noviembre de 2026",
+  version: "0.4.0",
+  fecha: "26 de noviembre de 2026",
   repositorio: "https://github.com/ramonmorillo/vihconectados",
 });
 const secciones = [

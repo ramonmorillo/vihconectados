@@ -1,4 +1,4 @@
-# vihconectados · Fase 1 · v0.3.0
+# vihconectados · Fase 1 · v0.4.0
 
 Plataforma de demostración para el seguimiento longitudinal de la cobertura del TAR oral, experiencia del paciente, actuaciones CMO y coordinación Farmacia Hospitalaria–Infecciosas.
 

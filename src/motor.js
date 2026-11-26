@@ -2,7 +2,7 @@ import { ultimoEvento, aplicable, fechaEfectiva } from "./temporal.js";
 import { dispensacionesVigentes } from "./dispensaciones.js";
 import { reglasPorDefecto, limitesParametros, estadoValidacionRegla } from "./reglas.js";
 /** Motor demostrativo v1. Fechas UTC; intervalos [inicio, fin). Sin inferencia de toma. */
-export const VERSION = "0.3.0";
+export const VERSION = "0.4.0";
 /** Parámetros vigentes: proceden del registro versionado de reglas (src/reglas.js), no se definen aquí. */
 export const REGLAS = reglasPorDefecto();
 export const CATALOGOS = Object.freeze({
