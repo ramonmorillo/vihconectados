@@ -98,6 +98,14 @@ export const ESQUEMAS = Object.freeze({
     requeridos: ["fecha", "formato", "paciente", "cobertura", "alertas", "plan"],
   },
   revision_alertas: { campos: { fecha: S, resultado: S, alertas: ARR, reglas: OBJ }, requeridos: ["resultado"] },
+  solicitud_valoracion: {
+    campos: { fecha: S, origen: S, destino: S, motivo: S, plazo: S, senal: S0 },
+    requeridos: ["fecha", "origen", "destino", "motivo", "plazo"],
+  },
+  estado_solicitud: {
+    campos: { fecha: S, solicitud: S, estado: S, perfil: S, respuesta: S0 },
+    requeridos: ["fecha", "solicitud", "estado", "perfil"],
+  },
   /** Sin productor en la aplicación actual; se mantiene aceptado con un esquema mínimo. */
   configuracion: { campos: { fecha: S, reglas: OBJ }, requeridos: [] },
 });

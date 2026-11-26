@@ -9,7 +9,7 @@ import { normalizarFicha, modalidadTar } from '../src/cima.js';
 import { demo } from '../src/demo.js';
 import { fichaPrueba } from './fixtures-cima.js';
 
-/** Base con los 16 tipos de evento, generada por los productores reales de la aplicación (compartida por varias pruebas). */
+/** Base con los 18 tipos de evento, generada por los productores reales de la aplicación (compartida por varias pruebas). */
 export const EXP = { barrera: 'No explorada', dificultad: 'No explorada', efecto: 'No explorado', carga: 'No explorada', preferencia: 'No explorada' };
 
 const inyectable = () => {
@@ -48,6 +48,10 @@ export function baseCompleta() {
   add({ tipo: 'importacion', fuente: 'Entrada manual', ...prepararDispensacionManual(p(), { fecha: '2026-11-26', episodio: ep, suministros: [{ componente: 'A', dias: 5 }] }) });
   add({ tipo: 'correccion_dispensacion', referencia: `${lote}:0`, motivo: 'Corrección sintética', sustitucion: { fecha: '2026-11-20', episodio: ep, componente: 'A', dias: 20 }, coincidencia_confirmada: false });
   add({ tipo: 'configuracion', reglas: { ...REGLAS } });
+  add({ tipo: 'solicitud_valoracion', fecha: fin, origen: 'Farmacia Hospitalaria', destino: 'Infecciosas', motivo: 'Motivo sintético de la solicitud', plazo: '2026-11-20', senal: 'cobertura_demo' });
+  const sol = ultimo();
+  add({ tipo: 'estado_solicitud', fecha: fin, solicitud: sol, estado: 'recibida', perfil: 'Infecciosas' });
+  add({ tipo: 'estado_solicitud', fecha: fin, solicitud: sol, estado: 'respondida', perfil: 'Infecciosas', respuesta: 'Respuesta sintética' });
   add(inyectable());
   return d;
 }

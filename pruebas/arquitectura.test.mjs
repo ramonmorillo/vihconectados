@@ -9,7 +9,7 @@ import { readdirSync, readFileSync } from 'node:fs';
  */
 const SRC = new URL('../src/', import.meta.url);
 const modulos = readdirSync(SRC).filter((f) => f.endsWith('.js')).sort();
-const INTERFAZ = new Set(['app.js', 'desktop.js', 'legal.js', 'portada.js', 'vista-consulta.js', 'vista-informes.js', 'medicacion.js', 'registro-manual.js', 'revision-datos.js']);
+const INTERFAZ = new Set(['app.js', 'desktop.js', 'legal.js', 'portada.js', 'vista-consulta.js', 'vista-informes.js', 'vista-solicitudes.js', 'medicacion.js', 'registro-manual.js', 'revision-datos.js']);
 const dominio = modulos.filter((m) => !INTERFAZ.has(m));
 const fuente = (f) => readFileSync(new URL(f, SRC), 'utf8');
 const sinComentarios = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').map((l) => l.replace(/(^|[^:'"`\\])\/\/.*$/, '$1')).join('\n');

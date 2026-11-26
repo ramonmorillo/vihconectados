@@ -27,6 +27,9 @@ import { AccesoDemostracion } from "./acceso.js";
 import { informe, informePaciente, textoInforme } from "./informes.js";
 import { vistaInforme } from "./vista-informes.js";
 import { empaquetar, informeMinimo } from "./exportacion.js";
+import { vistaSolicitudes, panelSolicitudesCaso, conectarSolicitudes, abrirNuevaSolicitud, abrirRespuesta } from "./vista-solicitudes.js";
+import { PERFILES, estadoSolicitud } from "./solicitudes.js";
+import { construirPasoSolicitud } from "./eventos-formulario.js";
 import { abrirSeleccionTar } from "./medicacion.js";
 import { ADHEFAR } from "./recursos.js";
 import { enlaceCima } from "./cima.js";
@@ -60,6 +63,8 @@ let db,
 const hoy = () => new Date().toLocaleDateString("sv-SE");
 const finDefault = "2026-11-08";
 let fin = finDefault;
+let perfil = PERFILES[0];
+try { const g = sessionStorage.getItem("vih.perfil"); if (PERFILES.includes(g)) perfil = g; } catch { /* sin almacenamiento de sesión */ }
 const badge = (t, w = false) =>
   `<span class="badge ${w ? "warn" : ""}">${esc(t)}</span>`;
 const boton = (a, t, id = "") =>
@@ -296,7 +301,7 @@ function caso(p) {
     )
     .join("")}</div>`;
   if (tab === "resumen")
-    html += `<div class="grid"><section class="card"><div class="section-head"><h2>Situación del caso</h2>${badge("CMO " + nivelCorte(p))}</div><p>Último TAR registrado: <strong>${esc(nombreTar(tratamientoHasta(p,fin)))}</strong></p>${(tratamientoHasta(p,fin)?.medicamentos || []).map((m) => `<p class="muted"><a href="${enlaceCima(m.nregistro)}" target="_blank" rel="noopener noreferrer">Ficha CIMA ${esc(m.nregistro)} ↗</a> · CN ${esc(m.cn)} · Consulta ${esc(m.consultado.slice(0, 10))}</p>`).join("")}<p>Cobertura hasta ${esc(fin)} (excluido): <strong>${pct(c)}</strong> · ${c.cubiertos}/${c.total} días</p><div class="actions">${boton("tar", "Registrar cambio TAR")}${boton("nivel", "Registrar nivel CMO")}${boton("informe", "Generar informe simulado")}${boton("hoja-paciente", "Crear hoja para el paciente")}</div><h3>Señales explicables</h3><p class="muted">${a.filter(s=>s.categoria==="aviso").length} avisos metodológicos, separados de los pendientes asistenciales y de calidad de datos.</p>${a.map((x) => `<div class="notice warning"><strong>${esc(x.texto)}</strong><br><small>${esc(x.regla)} · ${esc(x.version)} · ${esc(x.categoria === "aviso" ? "Aviso metodológico" : x.categoria === "datos" ? "Calidad de datos" : "Señal asistencial")} · Gestión: ${esc(x.estado_gestion)}${x.reabierta ? " · Evidencias cambiadas: revisar de nuevo" : ""}</small>${x.gestion ? `<p>Motivo: ${esc(x.gestion.motivo)}</p>` : ""}${boton("gestionar-senal", "Gestionar: " + x.regla, x.regla)}</div>`).join("") || '<p class="muted">Sin señales bajo la configuración actual. No equivale a ausencia de problemas.</p>'}<div class="actions">${boton("revision", "Registrar revisión profesional simulada")}</div><p class="muted">Revisiones anteriores sin vínculo individual de señal (se conservan sin reinterpretarlas):<br>${p.eventos
+    html += `<div class="grid"><section class="card"><div class="section-head"><h2>Situación del caso</h2>${badge("CMO " + nivelCorte(p))}</div><p>Último TAR registrado: <strong>${esc(nombreTar(tratamientoHasta(p,fin)))}</strong></p>${(tratamientoHasta(p,fin)?.medicamentos || []).map((m) => `<p class="muted"><a href="${enlaceCima(m.nregistro)}" target="_blank" rel="noopener noreferrer">Ficha CIMA ${esc(m.nregistro)} ↗</a> · CN ${esc(m.cn)} · Consulta ${esc(m.consultado.slice(0, 10))}</p>`).join("")}<p>Cobertura hasta ${esc(fin)} (excluido): <strong>${pct(c)}</strong> · ${c.cubiertos}/${c.total} días</p><div class="actions">${boton("tar", "Registrar cambio TAR")}${boton("nivel", "Registrar nivel CMO")}${boton("informe", "Generar informe simulado")}${boton("hoja-paciente", "Crear hoja para el paciente")}${boton("solicitud-nueva", "Solicitar valoración")}</div>${panelSolicitudesCaso(p, fin, perfil)}<h3>Señales explicables</h3><p class="muted">${a.filter(s=>s.categoria==="aviso").length} avisos metodológicos, separados de los pendientes asistenciales y de calidad de datos.</p>${a.map((x) => `<div class="notice warning"><strong>${esc(x.texto)}</strong><br><small>${esc(x.regla)} · ${esc(x.version)} · ${esc(x.categoria === "aviso" ? "Aviso metodológico" : x.categoria === "datos" ? "Calidad de datos" : "Señal asistencial")} · Gestión: ${esc(x.estado_gestion)}${x.reabierta ? " · Evidencias cambiadas: revisar de nuevo" : ""}</small>${x.gestion ? `<p>Motivo: ${esc(x.gestion.motivo)}</p>` : ""}${boton("gestionar-senal", "Gestionar: " + x.regla, x.regla)}</div>`).join("") || '<p class="muted">Sin señales bajo la configuración actual. No equivale a ausencia de problemas.</p>'}<div class="actions">${boton("revision", "Registrar revisión profesional simulada")}</div><p class="muted">Revisiones anteriores sin vínculo individual de señal (se conservan sin reinterpretarlas):<br>${p.eventos
       .filter((e) => e.tipo === "revision_alertas" && aplicable(e,fin))
       .map(
         (e) =>
@@ -313,7 +318,7 @@ function caso(p) {
       .reverse()
       .map(
         (e) =>
-          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", estado_actuacion: "Actuación realizada", consulta: "Consulta y plan", seguimiento_consulta: "Seguimiento del plan", gestion_senal: "Gestión de señal", correccion_dispensacion: "Corrección de dispensación", evaluacion_adherencia: "Valoración manual de adherencia", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.resultado || e.texto || "")}</p><small>Fecha efectiva: ${esc(e.tipo === "importacion" ? "Según las fechas de sus filas" : e.fecha || "No disponible; referencia de registro")} · Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "gestion_senal" ? `<p>${esc(e.regla)} · Motivo: ${esc(e.motivo)}${e.actuacion ? ` · Actuación ${esc(e.actuacion)}` : ""}</p>` : ""}${e.tipo === "correccion_dispensacion" ? `<p>Referencia ${esc(e.referencia)} · Motivo: ${esc(e.motivo)} · ${e.sustitucion ? "Sustitución" : "Anulación"}</p>` : ""}${e.tipo === "importacion" ? `<p>${e.decisiones?.length ? `Decisiones de conciliación: ${e.decisiones.map(d=>`${esc(d.accion)} · fila ${esc(d.linea)} · ${esc(d.motivo)}${d.referencia ? ` · Referencia ${esc(d.referencia)}` : ""}`).join("<br>")}<br>` : ""}${e.filas.filter(f=>f.fecha<=fin).length} filas hasta el corte de ${e.filas.length} aceptadas en el lote · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
+          `<div class="event"><time>${esc(e.fecha || e.registrado?.slice(0, 10))}</time><p><strong>${esc({ nivel: "Nivel CMO", tratamiento: "Inicio de episodio TAR", visita: "Visita y experiencia", importacion: "Importación de dispensaciones", actuacion: "Actuación CMO", informe: "Informe para Infecciosas", informe_paciente: "Hoja para el paciente", estado_comunicacion: "Estado de comunicación", solicitud_valoracion: "Solicitud de valoración", estado_solicitud: "Paso de solicitud", estado_actuacion: "Actuación realizada", consulta: "Consulta y plan", seguimiento_consulta: "Seguimiento del plan", gestion_senal: "Gestión de señal", correccion_dispensacion: "Corrección de dispensación", evaluacion_adherencia: "Valoración manual de adherencia", revision_alertas: "Revisión profesional simulada" }[e.tipo] || e.tipo)}</strong> ${esc(e.tar || e.nivel || e.estado || e.resultado || e.texto || "")}</p><small>Fecha efectiva: ${esc(e.tipo === "importacion" ? "Según las fechas de sus filas" : e.fecha || "No disponible; referencia de registro")} · Registro ${esc(e.id)} · ${esc(e.registrado)}</small>${e.tipo === "gestion_senal" ? `<p>${esc(e.regla)} · Motivo: ${esc(e.motivo)}${e.actuacion ? ` · Actuación ${esc(e.actuacion)}` : ""}</p>` : ""}${e.tipo === "correccion_dispensacion" ? `<p>Referencia ${esc(e.referencia)} · Motivo: ${esc(e.motivo)} · ${e.sustitucion ? "Sustitución" : "Anulación"}</p>` : ""}${e.tipo === "importacion" ? `<p>${e.decisiones?.length ? `Decisiones de conciliación: ${e.decisiones.map(d=>`${esc(d.accion)} · fila ${esc(d.linea)} · ${esc(d.motivo)}${d.referencia ? ` · Referencia ${esc(d.referencia)}` : ""}`).join("<br>")}<br>` : ""}${e.filas.filter(f=>f.fecha<=fin).length} filas hasta el corte de ${e.filas.length} aceptadas en el lote · ${e.duplicadas.length} duplicadas · lote ${esc(e.huella || e.fuente)}</p>` : ""}</div>`,
       )
       .join("")}</section>`;
   if (tab === "adherencia")
@@ -410,6 +415,9 @@ function render() {
     html =
       '<p class="intro">Circuito simulado. Cada informe conserva su versión y cada transición deja rastro.</p>' +
       listadoInformes(db.pacientes);
+  } else if (route === "solicitudes") {
+    title = "Solicitudes entre profesionales";
+    html = vistaSolicitudes(db.pacientes, fin, perfil);
   } else if (route === "recursos") {
     title = "Recursos de adherencia";
     html = recursos();
@@ -425,6 +433,11 @@ function render() {
     html + (publica ? "" : '<p class="muted">Hechos hasta el corte inclusive; cobertura [inicio, corte), con el día de corte excluido. Reconstrucción con la información disponible hoy y correcciones retrospectivas. Si falta fecha efectiva, se usa la fecha de registro como referencia; los datos sin ninguna fecha no se atribuyen a un periodo histórico.</p>');
   conectarCohorte(db.pacientes, fin, reglas);
   conectarAgenda(db.pacientes, fin);
+  conectarSolicitudes((nuevo) => {
+    perfil = nuevo;
+    try { sessionStorage.setItem("vih.perfil", nuevo); } catch { /* sin almacenamiento de sesión */ }
+    render();
+  });
   document
     .querySelectorAll("[data-pct]")
     .forEach((el) => (el.style.width = el.dataset.pct + "%"));
@@ -491,6 +504,18 @@ document.addEventListener("click", async (ev) => {
     if (a === "abrir") {
       tab = "resumen";
       location.hash = "caso/" + id;
+    }
+    if (a === "solicitud-nueva") abrirNuevaSolicitud({ p, fin, reglas, perfil, modal, guardar: add });
+    if (a === "solicitud-paso") {
+      const [pid, sid, estado] = id.split("|");
+      const s = estadoSolicitud(db.pacientes.find((x) => x.id === pid), sid, fin);
+      if (!s) throw Error("La solicitud no existe a la fecha de corte.");
+      const guardarPaso = (evento) => ejecutar({ tipo: "anexar_evento", paciente: pid, evento });
+      if (estado === "respondida") abrirRespuesta({ s, perfil, fin, modal, guardar: guardarPaso });
+      else {
+        guardarPaso(construirPasoSolicitud({ solicitud: sid, estado, perfil, fin }));
+        flash("Paso registrado.");
+      }
     }
     if (a === "dispensacion-manual") abrirDispensacionManual({ p, fin, modal, guardar: add });
     if (a === "evaluacion-manual") abrirEvaluacionManual({ fin, modal, guardar: add });

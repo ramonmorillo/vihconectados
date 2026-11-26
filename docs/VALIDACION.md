@@ -178,3 +178,10 @@ El envío por Git de `feat/fase-1` se completó correctamente. La rama está dis
 - **Qué no cambia:** el contenido clínico. Ninguna regla está validada; los informes nuevos registran `version: "0.4.0"` y los guardados con 0.3.0 conservan su versión.
 - **Criterio de numeración:** incremento menor por funciones nuevas y cambio de formato de datos con migración. La numeración la fija el autor; este cambio puede revertirse sin afectar a los datos.
 - **Documentos históricos:** la auditoría (`docs/strategy/CURRENT_STATE_AUDIT.md`) describe la base auditada, v0.3.0, y no se reescribe.
+
+## Solicitudes de valoración entre profesionales (2026-11-26)
+
+- **Qué existe:** dos tipos de evento (`solicitud_valoracion`, `estado_solicitud`), dominio puro `src/solicitudes.js`, interfaz `src/vista-solicitudes.js` y menú «Solicitudes entre profesionales». Ver `docs/strategy/COMUNICACION_PROFESIONALES.md`.
+- **Pruebas:** `pruebas/solicitudes.test.mjs` (13; contraste por mutación sobre copia: 12 mutantes, 1 superviviente —el mensaje de «ya cerrada»— que se cubrió) y `pruebas/solicitudes.mjs` (ciclo completo en navegador con dos perfiles, persistencia, corte temporal y escape de HTML). Los tipos de evento pasan a ser **18**.
+- **Qué NO está comprobado ni existe:** autenticación (el perfil es declarado), servidor compartido, avisos, criterios clínicos de cuándo solicitar, Enfermería. Decisión abierta: D-G18.
+- **Compatibilidad:** una base escrita con 0.4.0 que contenga estos eventos, abierta con una versión anterior, los mostrará como eventos que no cumplen el esquema (se conservan).

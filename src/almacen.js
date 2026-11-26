@@ -5,6 +5,7 @@ import { validarGestionSenal } from "./senales.js";
 import { validarEvaluacionAdherencia } from "./adherencia.js";
 import { validarMedicamentos } from "./cima.js";
 import { validarEvento, TIPOS_EVENTO } from "./esquemas-eventos.js";
+import { validarSolicitud, validarEstadoSolicitud } from "./solicitudes.js";
 import { FORMATO_ACTUAL, FORMATO_ANTERIOR, ESQUEMA_EVENTOS, migrarBase, diagnosticarBase } from "./migraciones.js";
 import {
   CATALOGOS,
@@ -160,6 +161,12 @@ export function anexar(db, id, evento) {
     e.reimportacion=plan.reimportacion || null;
     // Un evento de conciliación puede no añadir suministro, pero conserva las decisiones.
     if (!e.filas.length && !e.decisiones.length) throw Error("Reimportación ya registrada; no se añaden eventos vacíos.");
+  } else if (e.tipo === "solicitud_valoracion") {
+    validarSolicitud(p, e);
+    e.motivo = e.motivo.trim();
+  } else if (e.tipo === "estado_solicitud") {
+    validarEstadoSolicitud(p, e);
+    if (typeof e.respuesta === "string") e.respuesta = e.respuesta.trim();
   } else if (e.tipo === "evaluacion_adherencia") {
     validarEvaluacionAdherencia(e);
   } else if (e.tipo === "importacion" && e.fuente === "Entrada manual") {
