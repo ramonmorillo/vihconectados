@@ -41,6 +41,7 @@ Las actuaciones A02–A21 no necesitan que se haya decidido la ruta regulatoria,
   3. Queda registrado si la finalidad fue revisada por asesor regulatorio (C01) o está pendiente.
 
 ### A02 · Matriz de trazabilidad y corrección de la deriva documental
+> **Estado 2026-11-26: IMPLEMENTADO Y VERIFICADO.** `TRACEABILITY_MATRIX.md` enlaza 32 capacidades con módulos, pruebas, riesgos y backlog; `trazabilidad.test.mjs` impide que se pudra (cada módulo y cada prueba deben figurar; toda referencia debe existir). Deriva documental: cuatro de las cinco discrepancias de `CURRENT_STATE_AUDIT.md` §5 están resueltas; queda abierta la etiqueta de versión `0.3.0` (decisión del autor).
 - **Impacto:** Medio (confianza, auditoría). · **Esfuerzo:** S–M. · **Prioridad:** P1 · **Tipo:** doc
 - **Dependencias:** ninguna. · **Riesgo:** bajo [R33].
 - **Aceptación:** (1) tabla REQ → módulo/función → prueba → riesgo para las capacidades C1–C24 de la auditoría; (2) `docs/PILOTO.md` y `docs/VALIDACION.md` actualizados (55 pruebas, TAR intramuscular admitido); (3) discrepancias listadas en `CURRENT_STATE_AUDIT.md` §5 resueltas o justificadas.

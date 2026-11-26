@@ -1,5 +1,15 @@
 # Validación técnica ejecutada
 
+## Actuaciones A01 (paquete de decisión), A02 y registro de decisiones (2026-11-26)
+
+No hay cambios en la aplicación. No es validación clínica.
+
+- `docs/strategy/DECISIONS_REGISTER.md`: 51 decisiones abiertas (15 de gobernanza y 36 de las especificaciones). `pruebas/decisiones.test.mjs` (4 pruebas) impide que se pierda una decisión o se marque resuelta sin acta; 6 defectos introducidos en una copia, **6 detectados**.
+- `docs/strategy/INTENDED_PURPOSE_DECISION.md`: paquete para decidir la finalidad prevista. **La decisión sigue abierta.** No se han cambiado los textos legales.
+- `docs/strategy/TRACEABILITY_MATRIX.md` y `pruebas/trazabilidad.test.mjs` (5 pruebas): 32 capacidades enlazadas con módulos, pruebas, riesgos y backlog; 9 defectos introducidos en una copia, **9 detectados**.
+- Corregido un enunciado desactualizado de `docs/PILOTO.md` (TAR intramuscular).
+- `npm test`: 191 pruebas superadas (182 previas + 4 + 5). `npm run check` correcto.
+
 ## Actuación A14 · Cuestionarios declarativos y reglas de escalado (2026-11-25)
 
 Ver `docs/strategy/QUESTIONNAIRE_SPEC.md`. **Borrador sin aprobar; no hay cambios en la aplicación.** No es validación clínica.

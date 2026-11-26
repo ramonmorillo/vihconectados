@@ -221,6 +221,8 @@ Gravedad: **Crítica** (bloquea el objetivo o es riesgo clínico/seguridad), **A
 | «Validar también IDs… y cada comando» (`ACCESO_HOSPITALARIO.md`, requisito para el futuro servidor) | `anexar` acepta sin validar cinco tipos de evento (F-12); es un requisito futuro, no una afirmación sobre el código actual | Alta (para backend) |
 | Nombre de «Fase 1 · v0.3.0» | Cuatro incrementos posteriores (0.3.x) sin cambio de versión (`VERSION = "0.3.0"` en `motor.js:4`) | Baja |
 
+**Resolución (2026-11-26):** las filas 1 a 4 están resueltas (nivel por defecto: A06; «solo TAR oral» en `PILOTO.md`: corregido; recuento de pruebas: `VALIDACION.md` tiene una sección por actuación con las cifras vigentes; validación de comandos: A08). **Sigue abierta la fila 5**: la versión de aplicación continúa en `0.3.0` pese a los incrementos posteriores; cambiarla es una decisión del autor. Trazabilidad completa en `TRACEABILITY_MATRIX.md`.
+
 ---
 
 ## 6. Información mínima que necesito del usuario (solo la imprescindible)
